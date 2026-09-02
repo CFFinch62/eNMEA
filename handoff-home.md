@@ -173,6 +173,38 @@ screen.**
 
 ---
 
+## Partition table: why it matches CrossInk's exactly
+
+Found by testing the round trip, after the web installer shipped: flashing
+CrossInk or CrossPoint back onto a device running eNMEA **failed**, with
+`Partition table is missing an OTA app slot`.
+
+Cause: eNMEA used the stock `huge_app.csv` - a 4 MB layout with a single app
+partition. CrossInk's installer (Inky) installs by writing into the *inactive*
+OTA slot, so a table with only `ota_0` gives it nowhere to write. eNMEA was
+turning these devices into a one-way trip, and the installer page said the
+opposite.
+
+Fixed by adopting CrossInk's own `partitions.csv` verbatim: 16 MB, `app0` and
+`app1` at 6.25 MB each. eNMEA has no OTA path and never writes `app1` - **the
+second slot exists purely so the device can be flashed back.** Anyone tempted
+to reclaim that space should read `partitions.csv`'s header first.
+
+This also fixed a plain bug: `platformio.ini` declared
+`board_upload.flash_size = 16MB` while `huge_app.csv` mapped only the first
+4 MB, leaving three quarters of the chip unaddressable.
+
+Recovery for a device already stuck on an old build: reinstall eNMEA from the
+web installer (which rewrites the partition table), then use Inky.
+
+**Lesson worth keeping**: the installer page claimed "installing eNMEA is not a
+one-way door" and pointed at Inky, on reasoning alone - nobody had run the round
+trip. The reasoning was sound and the claim was false. Untested claims about
+recovery paths are the ones that hurt most, because they are only discovered by
+the person who needs them to be true.
+
+---
+
 ## Environment notes (the things that cost time)
 
 - **PlatformIO is not installed system-wide.** Chuck's Python is externally

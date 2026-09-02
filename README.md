@@ -126,8 +126,20 @@ own one-click web installer at
 [inky.crossink.dev](https://inky.crossink.dev/#flash-tools), which serves the
 current official build for each device model. Hosting copies here would mean
 shipping someone else's firmware, going stale, and owning support for it.
-Nothing eNMEA does blocks the round trip - flashing rewrites internal flash
-only, and the SD card is never touched.
+
+That round trip only works because eNMEA uses a **partition table identical to
+CrossInk's** (`partitions.csv` - 16MB, dual OTA slots). Inky installs by writing
+into the *inactive* OTA slot, so it refuses any table with a single app
+partition, reporting `Partition table is missing an OTA app slot`. eNMEA
+originally shipped the stock `huge_app.csv` (4MB, one slot) and did exactly
+that to people - a device that could not be flashed back. Do not "reclaim" app1
+by switching to a single-slot table; it is load-bearing for compatibility, not
+for OTA.
+
+**If you have a device stuck on an older eNMEA build** (one flashed before this
+was fixed), reinstall eNMEA from
+[the web installer](https://cffinch62.github.io/eNMEA/) first. That rewrites the
+partition table, after which Inky works normally.
 
 ## Build & flash
 

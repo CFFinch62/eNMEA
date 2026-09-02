@@ -1,0 +1,29 @@
+# eNMEA partition table - 16 MB, dual OTA slots.
+#
+# This is deliberately identical to CrossInk's partitions.csv, and that is the
+# whole point of it. It is not about OTA: eNMEA has no update-over-the-air path
+# and never writes app1.
+#
+# The reason is the round trip back to the e-reader firmware. CrossInk's web
+# installer (inky.crossink.dev) installs by writing into the *inactive* OTA
+# slot, so it refuses to run against a partition table that has only one app
+# partition - it reports "Partition table is missing an OTA app slot" and
+# stops. eNMEA previously used the stock huge_app.csv, a 4 MB single-slot
+# layout, which left a device that could not be flashed back to CrossInk
+# without erasing the whole chip first. Matching their layout means either
+# firmware can replace the other with its own normal installer.
+#
+# Sizing this against the real 16 MB chip also fixes a plain bug: platformio.ini
+# declared board_upload.flash_size = 16MB while huge_app.csv mapped only the
+# first 4 MB, so three quarters of the flash was unaddressable.
+#
+# eNMEA's application is ~1.1 MB, so a 6.25 MB slot is enormous overkill. That
+# is fine - compatibility is worth more here than reclaimed space nothing uses.
+#
+# Name,   Type, SubType, Offset,  Size, Flags
+nvs,      data, nvs,     0x9000,  0x5000,
+otadata,  data, ota,     0xe000,  0x2000,
+app0,     app,  ota_0,   0x10000, 0x640000,
+app1,     app,  ota_1,   0x650000,0x640000,
+spiffs,   data, spiffs,  0xc90000,0x360000,
+coredump, data, coredump,0xFF0000,0x10000,
