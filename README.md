@@ -134,6 +134,9 @@ own one-click web installer at
 current official build for each device model. Hosting copies here would mean
 shipping someone else's firmware, going stale, and owning support for it.
 
+**Verified both directions, twice** (2026-09-01): eNMEA to CrossInk via Inky,
+and CrossInk back to eNMEA via the web installer, with no errors either way.
+
 That round trip only works because eNMEA uses a **partition table identical to
 CrossInk's** (`partitions.csv` - 16MB, dual OTA slots). Inky installs by writing
 into the *inactive* OTA slot, so it refuses any table with a single app

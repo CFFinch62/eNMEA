@@ -197,6 +197,12 @@ This also fixed a plain bug: `platformio.ini` declared
 Recovery for a device already stuck on an old build: reinstall eNMEA from the
 web installer (which rewrites the partition table), then use Inky.
 
+**Verified end to end**: the full revert/reload cycle was run twice - eNMEA to
+CrossInk through Inky, then CrossInk back to eNMEA through the web installer -
+with no errors in either direction. That exercises the partition-table rewrite
+both ways, the otadata handoff (CrossInk may boot from app1; our image writes
+otadata pointing at app0), and the NVS wipe.
+
 **Lesson worth keeping**: the installer page claimed "installing eNMEA is not a
 one-way door" and pointed at Inky, on reasoning alone - nobody had run the round
 trip. The reasoning was sound and the claim was false. Untested claims about
