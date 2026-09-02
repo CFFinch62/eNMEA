@@ -4,6 +4,17 @@ NMEA 0183 over Wi-Fi verification tool, running on Xteink X3/X4 hardware
 (ESP32-C3; 800x480 e-ink on the X4, 792x528 on the X3) as a bare dev-kit
 target.
 
+![The eNMEA dashboard on an Xteink X3: a sentence-ID checklist down the left
+column, an eight-box value grid showing position, speed, course, heading, sea
+temperature, depth, wind and AIS target count, and a status line reading
+SOURCE: CONNECTED with the device address and battery
+charge.](docs/images/dashboard.jpg)
+
+*Live on an X3, fed by `scripts/nmea_test_server.py` over TCP. `GGA 377 (19) 0S`
+means 377 valid GGA sentences with 19 checksum failures, the most recent one
+under a second ago - the parenthesised count is the thing this tool exists to
+surface. `HDG --` and `DPT --` are sentence types the feed never sent.*
+
 This is **not** a CrossInk/CrossPoint fork or plugin. It shares no code with
 that firmware's app layer, only two low-level hardware libraries from the
 open-source `freeink-sdk` that CrossInk itself is built on (the e-ink panel

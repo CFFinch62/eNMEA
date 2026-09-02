@@ -7,3 +7,8 @@ platformio.local.ini
 
 # Cloned separately per README.md "Getting freeink-sdk" - not vendored here.
 /freeink-sdk/
+
+# Camera originals: kept on disk, not in the repo - HEIC renders nowhere
+# on GitHub. Converted copies live in docs/images/.
+*.HEIC
+*.heic
