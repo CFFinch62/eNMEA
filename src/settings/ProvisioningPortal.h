@@ -2,6 +2,19 @@
 
 #include "AppSettings.h"
 
+// The setup access point's name and address.
+//
+// Deliberately NOT the ESP32 default of 192.168.4.1. Marine Wi-Fi gateways are
+// overwhelmingly ESP32-based and sit on exactly that address in their own AP
+// mode - the ONWA KC-2W, for one. If eNMEA joins such a gateway's access point
+// while hosting its own on the same subnet, the device ends up with two
+// interfaces on 192.168.4.0/24 and the address it must reach the gateway on is
+// its own AP address: it would connect to itself and report a source failure
+// with everything apparently configured correctly. Sitting on a different
+// subnet makes eNMEA a good citizen with any gateway, not just that one.
+inline constexpr const char* SETUP_AP_SSID = "eNMEA-Setup";
+inline constexpr const char* SETUP_AP_IP = "192.168.7.1";
+
 // A tiny HTTP form (served over WiFiServer/WebServer, both stock
 // Arduino-ESP32 classes - not a freeink-sdk or CrossInk dependency) for
 // entering the WiFi SSID/password and the NMEA source host/port/protocol.

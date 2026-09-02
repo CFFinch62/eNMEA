@@ -12,6 +12,14 @@ WebServer server(80);
 
 constexpr char AP_SSID[] = "eNMEA-Setup";
 
+// Moves the SoftAP off the ESP32 default subnet before it starts - see the
+// collision note in ProvisioningPortal.h. Must run before softAP().
+void configureApSubnet() {
+  IPAddress ip;
+  ip.fromString(SETUP_AP_IP);
+  WiFi.softAPConfig(ip, ip, IPAddress(255, 255, 255, 0));
+}
+
 // Sent in chunks rather than snprintf'd into one buffer: the page outgrew a
 // single stack buffer once it gained the status block and the reset form, and
 // a silently truncated page is a nasty failure mode for the one screen you
@@ -116,7 +124,7 @@ void handleForget() {
   clearAppSettings();
   server.send(200, "text/html",
               "<html><body><h3>Settings erased. Rebooting into setup mode...</h3>"
-              "<p>Rejoin <b>eNMEA-Setup</b> and browse to http://192.168.4.1/</p></body></html>");
+              "<p>Rejoin <b>eNMEA-Setup</b> and browse to http://192.168.7.1/</p></body></html>");
   delay(200);
   ESP.restart();
 }
@@ -131,6 +139,7 @@ void ProvisioningPortal::setupRoutes() {
 
 void ProvisioningPortal::beginAsAccessPoint() {
   WiFi.mode(WIFI_AP);
+  configureApSubnet();
   WiFi.softAP(AP_SSID);
   Serial.printf("[eNMEA] Setup AP '%s' up at http://%s/\n", AP_SSID, WiFi.softAPIP().toString().c_str());
   setupRoutes();
@@ -142,6 +151,7 @@ void ProvisioningPortal::beginOnStation() {
   // current, which is the right trade for a bench tool that must never become
   // unreachable. Switching modes here does not drop the existing association.
   WiFi.mode(WIFI_AP_STA);
+  configureApSubnet();
   WiFi.softAP(AP_SSID);
   Serial.printf("[eNMEA] Settings page: http://%s/ (LAN) and http://%s/ via AP '%s'\n",
                 WiFi.localIP().toString().c_str(), WiFi.softAPIP().toString().c_str(), AP_SSID);

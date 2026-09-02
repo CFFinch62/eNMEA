@@ -46,4 +46,5 @@ class Dashboard {
   int gridColX(int col) const;
   int gridRowH() const;
   int gridRowY(int row) const;
+  int otherMaxLines() const;
 };

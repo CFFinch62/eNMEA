@@ -117,14 +117,26 @@ struct SentenceStatus {
   unsigned long lastValidMs = 0;
 };
 
-// 12 decoded IDs (see Dashboard.cpp's KNOWN_IDS) plus headroom for whatever
-// else a real multiplexer feed sends (GSA, GSV, GLL, ZDA, ...) to land in
-// the "OTHER:" line.
-constexpr int MAX_TRACKED_SENTENCE_IDS = 20;
+// 12 decoded IDs (see Dashboard.cpp's KNOWN_IDS) plus generous headroom for
+// everything else a real feed carries.
+//
+// Sized for the job this tool is actually used for: proving that data is
+// present on a network, not just the handful of types it draws boxes for. A
+// NMEA 2000 gateway converting a healthy backbone to 0183 easily emits more
+// than twenty distinct IDs - GGA RMC VTG GLL ZDA GSA GSV HDG HDT HDM MWV MWD
+// MTW DBT DPT DBK VHW VLW XDR RSA ROT VDM VDO TXT is twenty-four before engine
+// and tank variants. The old limit of 20 meant the table filled and every
+// later type became invisible, which is the worst failure a verification tool
+// can have: the user concludes a transmitter is silent when it is only
+// untracked. At 16 bytes an entry this costs 768 bytes of a 320 KB heap.
+constexpr int MAX_TRACKED_SENTENCE_IDS = 48;
 
 struct SentenceTable {
   SentenceStatus entries[MAX_TRACKED_SENTENCE_IDS];
   int count = 0;
+  // Set once a new sentence ID had to be turned away. The UI surfaces this, so
+  // a full table is never mistaken for a quiet network.
+  bool overflowed = false;
 
   // Finds or creates (if room) the entry for a 3-char sentence id.
   SentenceStatus* findOrAdd(const char* id3) {
@@ -133,7 +145,10 @@ struct SentenceTable {
         return &entries[i];
       }
     }
-    if (count >= MAX_TRACKED_SENTENCE_IDS) return nullptr;
+    if (count >= MAX_TRACKED_SENTENCE_IDS) {
+      overflowed = true;
+      return nullptr;
+    }
     SentenceStatus* s = &entries[count++];
     s->id[0] = id3[0];
     s->id[1] = id3[1];

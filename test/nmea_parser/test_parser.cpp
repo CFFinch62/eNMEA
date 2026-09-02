@@ -234,6 +234,51 @@ void runParserTests() {
     CHECK(!r.checksumValid);
   }
 
+  beginSection("Sentence table - capacity and honest overflow");
+  {
+    // The table has to hold everything a gateway converting NMEA 2000 emits,
+    // because "this ID arrived at all" is the answer the tool exists to give.
+    SentenceTable table;
+    CHECK(MAX_TRACKED_SENTENCE_IDS >= 40);
+    CHECK(!table.overflowed);
+
+    char id[4] = {'A', 'A', 'A', '\0'};
+    for (int i = 0; i < MAX_TRACKED_SENTENCE_IDS; ++i) {
+      id[1] = static_cast<char>('A' + i / 26);
+      id[2] = static_cast<char>('A' + i % 26);
+      CHECK(table.findOrAdd(id) != nullptr);
+    }
+    CHECK(table.count == MAX_TRACKED_SENTENCE_IDS);
+    CHECK(!table.overflowed);  // exactly full is not overflowed
+
+    // One more distinct ID must be refused *and* recorded as refused. Silently
+    // dropping it would let the dashboard imply a transmitter is quiet when it
+    // is merely untracked - the one failure a verification tool must not have.
+    char extra[4] = {'Z', 'Z', 'Z', '\0'};
+    CHECK(table.findOrAdd(extra) == nullptr);
+    CHECK(table.overflowed);
+    CHECK(table.count == MAX_TRACKED_SENTENCE_IDS);
+
+    // Already-tracked IDs keep working after overflow.
+    id[1] = 'A';
+    id[2] = 'A';
+    SentenceStatus* first = table.findOrAdd(id);
+    CHECK(first != nullptr);
+    first->validCount = 7;
+    CHECK(table.findOrAdd(id)->validCount == 7);
+  }
+  {
+    // A feed within capacity never sets the flag.
+    SentenceTable table;
+    char id[4] = {'X', 'X', 'A', '\0'};
+    for (int i = 0; i < 20; ++i) {
+      id[2] = static_cast<char>('A' + i);
+      table.findOrAdd(id);
+    }
+    CHECK(table.count == 20);
+    CHECK(!table.overflowed);
+  }
+
   beginSection("Field timestamps track millis()");
   {
     NmeaData data;

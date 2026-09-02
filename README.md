@@ -165,14 +165,14 @@ Board is `esp32-c3-devkitm-1` / ESP32-C3, matching the X3/X4's actual MCU.
 
 1. On first boot (no saved settings), the panel shows a QR-free "SETUP MODE"
    screen and the device starts a Wi-Fi access point named `eNMEA-Setup`.
-2. Connect a phone or laptop to that AP, browse to `http://192.168.4.1/`.
+2. Connect a phone or laptop to that AP, browse to `http://192.168.7.1/`.
 3. Fill in your Wi-Fi SSID/password, pick UDP or TCP, and set the port (and
    host, for TCP). Submit - the device saves the settings to flash (NVS) and
    reboots.
 4. It reconnects to your real Wi-Fi and starts the dashboard. The device's
    own IP is shown on screen, in the status row.
 5. The settings form stays reachable for the whole session **two ways**: at
-   `http://<device-ip>/` on your LAN, and at `http://192.168.4.1/` over the
+   `http://<device-ip>/` on your LAN, and at `http://192.168.7.1/` over the
    `eNMEA-Setup` AP, which stays up alongside the Wi-Fi connection. The AP is
    the one that matters - it works even when the saved settings are wrong for
    wherever the device currently is.
@@ -182,7 +182,7 @@ Board is `esp32-c3-devkitm-1` / ESP32-C3, matching the X3/X4's actual MCU.
 Three ways in, in order of how little has to be working for them to succeed:
 
 1. **The setup AP.** `eNMEA-Setup` is up whenever the device is on, whether or
-   not it joined your Wi-Fi. Join it and browse to `http://192.168.4.1/`.
+   not it joined your Wi-Fi. Join it and browse to `http://192.168.7.1/`.
 2. **Hold BACK for 3 seconds** on the device. It erases the saved settings and
    reboots into setup mode. A "KEEP HOLDING TO ERASE SETTINGS" line appears in
    the status row about half a second in, so the gesture isn't a silent trap.
@@ -392,8 +392,11 @@ too: `freeink-sdk` (the hardware libraries this links against) and CrossInk
 - Nothing is shown on screen while the device is between dashboard redraws, so
   a button hold can take up to ~2s to acknowledge visually.
 - The "sentences seen" checklist tracks at most `MAX_TRACKED_SENTENCE_IDS`
-  (20) distinct sentence IDs total (12 dedicated rows + up to 8 more
-  summarized on the `OTHER:` line); a feed sending more distinct types than
-  that stops gaining new tracked rows once the table is full (already-
-  tracked IDs keep updating). Not expected to matter for a typical
-  multiplexer feed, but worth knowing if `OTHER:` ever looks incomplete.
+  (48) distinct sentence IDs, and the panel shows what fits - 16 `OTHER:`
+  entries on the X3, 8 on the X4. Anything past that is reported as
+  `+N MORE`, or `+N MORE FULL` when the table itself ran out. It never
+  silently under-reports: "this ID never arrived" and "we had no room for it"
+  mean completely different things to someone diagnosing a network, and a tool
+  that conflates them will send a user chasing a fault that isn't there.
+  The old limit was 20, which a NMEA 2000 gateway converting a healthy
+  backbone exceeds routinely.

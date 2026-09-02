@@ -1,12 +1,12 @@
 {
   "name": "eNMEA (Xteink X3)",
-  "version": "92448e4",
+  "version": "8dfa835",
   "new_install_prompt_erase": true,
   "builds": [
     {
       "chipFamily": "ESP32-C3",
       "parts": [
-        { "path": "firmware/eNMEA-x3-92448e4.bin", "offset": 0 }
+        { "path": "firmware/eNMEA-x3-8dfa835.bin", "offset": 0 }
       ]
     }
   ]

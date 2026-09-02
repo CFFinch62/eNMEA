@@ -145,7 +145,7 @@ void drawSetupScreen(const char* headline) {
   canvas.drawText(20, 40, headline, 3, true);
   canvas.drawText(20, 90, "CONNECT TO WIFI:", 1, true);
   canvas.drawText(20, 105, "eNMEA-Setup", 2, true);
-  canvas.drawText(20, 135, "THEN BROWSE TO 192.168.4.1", 1, true);
+  canvas.drawText(20, 135, "THEN BROWSE TO 192.168.7.1", 1, true);
   canvas.drawText(20, canvas.height() - 14, "HOLD POWER 2S: SHUT DOWN", 1, true);
   canvas.present(EInkDisplay::HALF_REFRESH);
 }
@@ -315,7 +315,7 @@ void loop() {
   if (WiFi.status() == WL_CONNECTED) {
     std::snprintf(netLine, sizeof(netLine), "SETUP: %s OR AP", WiFi.localIP().toString().c_str());
   } else {
-    std::snprintf(netLine, sizeof(netLine), "WIFI DOWN - SETUP AP 192.168.4.1");
+    std::snprintf(netLine, sizeof(netLine), "WIFI DOWN - SETUP AP %s", SETUP_AP_IP);
   }
 
   char battLine[16];

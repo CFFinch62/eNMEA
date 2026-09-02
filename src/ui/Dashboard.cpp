@@ -45,11 +45,16 @@ constexpr int LIST_W = 208;
 constexpr int LIST_MAX_CHARS = LIST_W / GLYPH_ADV_2;  // 17
 
 // The "OTHER:" block below the checklist: IDs that arrived but aren't decoded.
-// Four per line at scale 2, two lines, which covers the 8 spare slots in
-// SentenceTable (MAX_TRACKED_SENTENCE_IDS 20 - 12 dedicated rows).
+// Four per line at scale 2. The number of lines is derived from whatever panel
+// height is left rather than hardcoded, so the X3's taller screen shows more
+// of them (4 lines / 16 IDs) than the X4's (2 lines / 8).
+//
+// Whatever doesn't fit is reported as "+N MORE" rather than dropped silently.
+// For a tool whose purpose is answering "is this data present?", under-showing
+// without saying so would let a user conclude a device is not transmitting when
+// it is only off the bottom of the list.
 constexpr int OTHER_LABEL_GAP = 14;
 constexpr int OTHER_IDS_PER_LINE = 4;
-constexpr int OTHER_MAX_LINES = 2;
 
 // 4 columns x 2 rows = 8 boxes. Both the column width and the row height are
 // derived from the canvas's runtime size rather than hardcoded, so the grid
@@ -97,6 +102,16 @@ int Dashboard::gridRowH() const {
 }
 
 int Dashboard::gridRowY(int row) const { return GRID_TOP + row * (gridRowH() + GRID_ROW_GAP); }
+
+// How many "OTHER:" lines fit between the checklist and the footer on this
+// panel. The X3 is 48px taller than the X4, and that space is worth spending
+// here rather than leaving blank.
+int Dashboard::otherMaxLines() const {
+  const int firstLineY = LIST_TOP + KNOWN_ID_COUNT * LIST_ROW_H + OTHER_LABEL_GAP + LIST_ROW_H;
+  const int bottom = canvas_.height() - FOOTER_RESERVE;
+  const int lines = (bottom - firstLineY) / LIST_ROW_H;
+  return lines < 1 ? 1 : lines;
+}
 
 void Dashboard::drawBox(int x, int y, int w, int h, const char* label) {
   canvas_.drawRect(x, y, w, h, true);
@@ -211,25 +226,39 @@ void Dashboard::drawValues(const NmeaData& data, const SentenceTable& table, con
     drawChecklistRow(i, findStatus(table, KNOWN_IDS[i]), nowMs);
   }
 
-  // Anything else the source sent that isn't one of the decoded types - still
-  // worth surfacing so the checklist reflects everything seen, not just what
-  // this tool happens to decode. Wrapped across lines rather than run into one
-  // long string: at scale 2 more than four IDs would overflow into the grid.
+  // Anything else the source sent that isn't one of the decoded types. This is
+  // the part that matters when the question is "is anything arriving at all?" -
+  // a gateway converting NMEA 2000 emits far more types than this tool decodes,
+  // and their presence alone proves the wiring and the backbone are good.
   const int otherLabelY = LIST_TOP + KNOWN_ID_COUNT * LIST_ROW_H + OTHER_LABEL_GAP;
-  canvas_.fillRect(LIST_X, otherLabelY, LIST_W, (OTHER_MAX_LINES + 1) * LIST_ROW_H, false);
+  const int maxLines = otherMaxLines();
+  canvas_.fillRect(LIST_X, otherLabelY, LIST_W, (maxLines + 1) * LIST_ROW_H, false);
   canvas_.drawText(LIST_X, otherLabelY, "OTHER:", TEXT_BODY, true);
+
+  // Count first, so we know up front whether the list has to be truncated and
+  // can reserve the final line to say so.
+  int otherTotal = 0;
+  for (int i = 0; i < table.count; ++i) {
+    if (!isKnownId(table.entries[i].id)) ++otherTotal;
+  }
+  const int capacity = maxLines * OTHER_IDS_PER_LINE;
+  const bool truncated = otherTotal > capacity || table.overflowed;
+  // Give up the last line to the "+N MORE" note when one is needed.
+  const int showLimit = truncated ? (maxLines - 1) * OTHER_IDS_PER_LINE : otherTotal;
 
   char lineBuf[LIST_MAX_CHARS + 2];
   int lineLen = 0;
   int lineIndex = 0;
   int onThisLine = 0;
+  int shown = 0;
   lineBuf[0] = '\0';
-  for (int i = 0; i < table.count && lineIndex < OTHER_MAX_LINES; ++i) {
+  for (int i = 0; i < table.count && shown < showLimit; ++i) {
     if (isKnownId(table.entries[i].id)) continue;
     if (onThisLine > 0) lineBuf[lineLen++] = ' ';
     std::memcpy(lineBuf + lineLen, table.entries[i].id, 3);
     lineLen += 3;
     lineBuf[lineLen] = '\0';
+    ++shown;
     if (++onThisLine == OTHER_IDS_PER_LINE) {
       canvas_.drawText(LIST_X, otherLabelY + (lineIndex + 1) * LIST_ROW_H, lineBuf, TEXT_BODY, true);
       ++lineIndex;
@@ -238,8 +267,20 @@ void Dashboard::drawValues(const NmeaData& data, const SentenceTable& table, con
       lineBuf[0] = '\0';
     }
   }
-  if (onThisLine > 0 && lineIndex < OTHER_MAX_LINES) {
+  if (onThisLine > 0) {
     canvas_.drawText(LIST_X, otherLabelY + (lineIndex + 1) * LIST_ROW_H, lineBuf, TEXT_BODY, true);
+    ++lineIndex;
+  }
+  if (truncated) {
+    // "FULL" means the tracking table itself ran out, so those IDs have no
+    // counts either - a stronger statement than merely not having screen room.
+    char more[LIST_MAX_CHARS + 2];
+    if (table.overflowed) {
+      std::snprintf(more, sizeof(more), "+%d MORE FULL", otherTotal - shown);
+    } else {
+      std::snprintf(more, sizeof(more), "+%d MORE", otherTotal - shown);
+    }
+    canvas_.drawText(LIST_X, otherLabelY + (lineIndex + 1) * LIST_ROW_H, more, TEXT_BODY, true);
   }
 
   char line1[24];

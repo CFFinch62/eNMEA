@@ -34,7 +34,7 @@ Wi-Fi network called **`eNMEA-Setup`**.
 **2. Join `eNMEA-Setup`** from your phone. Ignore the "no internet" warning —
 this network only reaches the device.
 
-**3. Browse to `http://192.168.4.1/`**
+**3. Browse to `http://192.168.7.1/`**
 
 **4. Fill in the form:**
 
@@ -171,7 +171,7 @@ Three ways, in order of how little has to be working:
 
 **1. The setup AP — always available.** `eNMEA-Setup` stays up the whole time
 the device is on, even while it's connected to your Wi-Fi. Join it, browse to
-`http://192.168.4.1/`, change anything, save. This works even when the saved
+`http://192.168.7.1/`, change anything, save. This works even when the saved
 settings are completely wrong for where you are.
 
 **2. From your network.** The settings page is also at `http://<device-ip>/` —
@@ -201,6 +201,40 @@ python3 scripts/nmea_test_server.py --proto udp
 
 It prints your machine's IP address at startup — that's exactly what goes in
 the device's Host field.
+
+---
+
+## Using it with a NMEA 2000 gateway
+
+A converter such as the ONWA KC-2W bridges both a NMEA 2000 backbone and wired
+NMEA 0183 instruments onto Wi-Fi, and serves them on **two different ports**:
+
+| Port | Carries |
+| --- | --- |
+| `10110` | NMEA 0183 arriving at the gateway from wired instruments |
+| `10111` | 0183 the gateway converted **out of** NMEA 2000 |
+
+Set eNMEA to **TCP**, the gateway's address, and whichever port you want to
+examine. Checking both localises a fault in about a minute, without touching a
+wire or opening a laptop:
+
+| 10110 | 10111 | What it means |
+| --- | --- | --- |
+| data | data | Both sides are alive. If a display still shows nothing, the problem is that display's own setup — its baud rate, or which sentences it has been told to accept. |
+| data | nothing | Wired 0183 is arriving. The N2K side is the problem: backbone wiring, termination, power, or PGN selection at the gateway. |
+| nothing | data | The backbone is healthy. Wired 0183 is the problem: wiring, polarity, or a baud-rate mismatch at the instrument. |
+| nothing | nothing | Neither side is delivering. Suspect the gateway itself, its power, or the Wi-Fi link — check `SOURCE:` first. |
+
+This is what eNMEA is for. It answers "is the data actually there?" separately
+from "does my display show it?", which are the two questions that otherwise get
+tangled together. **A sentence appearing at all — even one eNMEA doesn't decode
+into a box — proves the wiring, the backbone and the gateway are working.** That
+is why the `OTHER:` list matters as much as the value boxes: engine, tank and
+similar data arrive as sentence types this tool deliberately doesn't interpret,
+and seeing them listed with a valid checksum is the confirmation you need.
+
+> **Note:** the gateway's own access point is at 192.168.4.1, and eNMEA's setup
+> AP deliberately sits on 192.168.7.1 so the two never collide.
 
 ---
 
@@ -244,6 +278,13 @@ and every TCP attempt with the reason it failed.
   once full; the ones already tracked keep updating.
 - **The setup AP is always on**, which shares the radio with the Wi-Fi
   connection. Harmless at NMEA data rates, but it does cost battery.
+- **The setup page is at 192.168.7.1, not the usual 192.168.4.1.** Most ESP32
+  devices — including marine Wi-Fi gateways — use 192.168.4.1 for their own
+  access point. If eNMEA used it too, a device joined to such a gateway would
+  have two interfaces on one subnet and would try to reach the gateway at its
+  own address. Moving ours avoids that entirely.
+- **Up to 48 sentence types are tracked**, and whatever doesn't fit on screen is
+  shown as `+N MORE` rather than hidden. The list never silently under-reports.
 - **Battery percentage comes from the X3's BQ27220 fuel gauge** over I2C, so
   it's a real state-of-charge reading rather than a voltage guess. If a read
   fails transiently the last good value stays on screen.

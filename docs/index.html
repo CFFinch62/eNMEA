@@ -123,7 +123,7 @@ footer {
 
   <section>
     <div class="install">
-      <esp-web-install-button manifest="manifest.json?v=92448e4">
+      <esp-web-install-button manifest="manifest.json?v=8dfa835">
         <button slot="activate" style="font:600 1rem/1 'Familjen Grotesk',system-ui,sans-serif;background:var(--accent);color:#fff;border:0;border-radius:4px;padding:.85rem 1.6rem;cursor:pointer">Install eNMEA</button>
         <div slot="unsupported" class="unsupported">
           <b>This browser can't flash devices.</b> Use <b>Chrome</b> or <b>Edge</b> on a desktop or laptop — they support Web Serial, which is how the page talks to the device. Safari, Firefox, and phone browsers can't.
@@ -137,12 +137,12 @@ footer {
         <ol>
           <li>The device's screen now reads <code>SETUP MODE</code>.</li>
           <li>On your phone, join the Wi-Fi network <b>eNMEA-Setup</b>.</li>
-          <li>Open <b>http://192.168.4.1/</b> and fill in your Wi-Fi details and where your NMEA data comes from.</li>
+          <li>Open <b>http://192.168.7.1/</b> and fill in your Wi-Fi details and where your NMEA data comes from.</li>
         </ol>
         <p>You can unplug the USB cable now. The <a href="https://github.com/CFFinch62/eNMEA/blob/main/USER_GUIDE.md">user guide</a> explains the dashboard.</p>
       </div>
       <div class="meta">
-        <span>version <span id="version">92448e4</span></span>
+        <span>version <span id="version">8dfa835</span></span>
         <span>built <span id="built">2026-09-01</span></span>
         <span>Xteink X3 · ESP32-C3</span>
       </div>
@@ -156,7 +156,7 @@ footer {
       <li><span><strong>Press Install</strong>, then pick the device from the list your browser shows. It will be named something like <code>USB JTAG/serial debug unit</code>.</span></li>
       <li><span><strong>Wait about a minute.</strong> The page erases the old firmware and writes the new one. Don't unplug during this.</span></li>
       <li><span><strong>The screen shows SETUP MODE</strong> when it's done, and the device starts its own Wi-Fi network called <code>eNMEA-Setup</code>.</span></li>
-      <li><span><strong>Join that network from your phone</strong> and open <code>http://192.168.4.1/</code> to enter your Wi-Fi details and where your NMEA data comes from. The <a href="https://github.com/CFFinch62/eNMEA/blob/main/USER_GUIDE.md">user guide</a> walks through it.</span></li>
+      <li><span><strong>Join that network from your phone</strong> and open <code>http://192.168.7.1/</code> to enter your Wi-Fi details and where your NMEA data comes from. The <a href="https://github.com/CFFinch62/eNMEA/blob/main/USER_GUIDE.md">user guide</a> walks through it.</span></li>
     </ol>
   </section>
 
@@ -212,14 +212,14 @@ footer {
 
   <section>
     <h2>It installed — now what?</h2>
-    <p>The screen shows <code>SETUP MODE</code> and the device starts its own Wi-Fi network. Join <code>eNMEA-Setup</code> from your phone, open <code>http://192.168.4.1/</code>, and fill in the form. The <a href="https://github.com/CFFinch62/eNMEA/blob/main/USER_GUIDE.md">user guide</a> covers the dashboard in full.</p>
+    <p>The screen shows <code>SETUP MODE</code> and the device starts its own Wi-Fi network. Join <code>eNMEA-Setup</code> from your phone, open <code>http://192.168.7.1/</code>, and fill in the form. The <a href="https://github.com/CFFinch62/eNMEA/blob/main/USER_GUIDE.md">user guide</a> covers the dashboard in full.</p>
     <div class="scroll">
       <table class="wrapfirst">
         <tbody>
           <tr><td>It won't join my Wi-Fi</td><td>The device is <b>2.4 GHz only</b> — it has no 5 GHz radio. If your network is 5 GHz-only, or your router steers devices to 5 GHz under the same network name, it cannot connect. Check the password too. After 15 seconds of failing it returns to <code>SETUP MODE</code> by itself, so you are never locked out.</td></tr>
           <tr><td>Connected, but the boxes stay empty</td><td>Look at the word after <code>SOURCE:</code> on screen. <code>LISTENING</code> means you chose UDP but your equipment expects TCP — change the protocol on the setup page. <code>FAILED</code> means it cannot reach the address you entered. <code>NO DATA</code> means the connection is fine and your equipment stopped sending.</td></tr>
           <tr><td>It worked at home but not on the boat</td><td>If you use TCP, the Host address belongs to a particular network. Move the device somewhere else and that address is usually wrong. Re-enter it from the setup page.</td></tr>
-          <tr><td>How do I get back to the settings?</td><td>Join <code>eNMEA-Setup</code> and open <code>192.168.4.1</code> — that network stays available the whole time the device is on, even while it is connected to your Wi-Fi. Or hold the <b>BACK</b> button for 3 seconds to clear everything and start over.</td></tr>
+          <tr><td>How do I get back to the settings?</td><td>Join <code>eNMEA-Setup</code> and open <code>192.168.7.1</code> — that network stays available the whole time the device is on, even while it is connected to your Wi-Fi. Or hold the <b>BACK</b> button for 3 seconds to clear everything and start over.</td></tr>
           <tr><td>How do I turn it off?</td><td>Hold the <b>power</b> button for 2 seconds. Press it once to turn back on.</td></tr>
           <tr><td>It still shows a picture when it's off</td><td>Normal. This kind of screen keeps its last image with no power at all — it is not still running.</td></tr>
           <tr><td>The battery goes down faster than before</td><td>Expected. eNMEA keeps Wi-Fi running and redraws the screen every two seconds, which is far more work than turning pages. The charge level is shown top right.</td></tr>
