@@ -14,7 +14,7 @@ class Dashboard {
 
   // Full layout redraw: call once after canvas_.clear(), before the first
   // present(). Draws box borders/labels that don't change call to call.
-  void drawChrome(const AppSettings& settings);
+  void drawChrome(const NmeaProfile& profile);
 
   // Redraws only the value regions inside the boxes already drawn by
   // drawChrome(). Caller is responsible for calling canvas_.present() with

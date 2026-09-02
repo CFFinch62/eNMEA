@@ -35,6 +35,8 @@ constexpr unsigned long SETTINGS_ERASE_HOLD_MS = 3000;
 // trap and neither fires without warning.
 constexpr unsigned long HOLD_FEEDBACK_MS = 500;
 
+bool connectToWifi(const NmeaProfile& profile);
+
 EinkCanvas canvas;
 Dashboard dashboard(canvas);
 NmeaSource nmeaSource;
@@ -55,6 +57,11 @@ bool provisioningOnly = true;
 uint16_t batteryPct = 0;
 bool batteryCharging = false;
 bool batteryKnown = false;
+
+// Which profile the UP/DOWN buttons are currently pointing at. Separate from
+// settings.activeIndex: you browse with UP/DOWN and commit with CONFIRM, so a
+// stray press never tears down a working connection.
+int selectedIndex = -1;
 
 unsigned long backHoldStartMs = 0;
 bool powerHintShown = false;
@@ -82,20 +89,82 @@ void formatBattery(char* out, size_t outLen) {
   std::snprintf(out, outLen, "%s %u%%", batteryCharging ? "CHRG" : "BATT", static_cast<unsigned>(batteryPct));
 }
 
+// Applies a profile in place - no reboot. Rebooting costs ~15 seconds, which
+// is fine once at install but not when stepping along a shelf of units.
+//
+// Counters are reset deliberately: carrying the previous device's sentence
+// totals into the next one would make a silent unit look alive.
+bool applyProfile(int index) {
+  if (!settings.indexValid(index)) return false;
+  const NmeaProfile& p = settings.profiles[index];
+  Serial.printf("[eNMEA] Applying profile %d '%s' (ssid '%s')\n", index + 1, p.name, p.ssid);
+
+  nmeaSource.end();
+  nmeaData = NmeaData{};
+  sentenceTable = SentenceTable{};
+
+  settings.activeIndex = static_cast<int8_t>(index);
+  selectedIndex = index;
+  saveAppSettings(settings);
+
+  canvas.clear();
+  canvas.drawText(24, 60, "SWITCHING...", 2, true);
+  canvas.drawText(24, 100, p.name, 2, true);
+  canvas.present(EInkDisplay::HALF_REFRESH);
+
+  const bool joined = connectToWifi(p);
+  if (!joined) {
+    Serial.println("[eNMEA] Profile's Wi-Fi did not join - staying on the dashboard so the state is visible");
+  } else {
+    nmeaSource.begin(p);
+    portal.beginOnStation();
+  }
+
+  canvas.clear();
+  dashboard.drawChrome(p);
+  canvas.present(EInkDisplay::FULL_REFRESH);
+  provisioningOnly = false;
+  return joined;
+}
+
 void showHoldBanner(const char* message) {
   dashboard.drawStatusMessage(message);
   canvas.present(EInkDisplay::FAST_REFRESH);
 }
 
-void eraseSettingsAndReboot() {
-  Serial.println("[eNMEA] BACK held - erasing saved settings and rebooting into setup mode");
-  clearAppSettings();
+// BACK clears only the profile in use, not the whole bench. Wiping eight
+// carefully entered configurations because someone leaned on a button would be
+// its own support call; a full reset lives on the settings page instead.
+void forgetActiveProfile() {
+  if (!settings.hasActive()) {
+    Serial.println("[eNMEA] BACK held - no active profile to forget");
+    return;
+  }
+  const int cleared = settings.activeIndex;
+  Serial.printf("[eNMEA] BACK held - forgetting profile %d '%s'\n", cleared + 1, settings.profiles[cleared].name);
+
   canvas.clear();
-  canvas.drawText(24, 60, "SETTINGS ERASED", 3, true);
-  canvas.drawText(24, 120, "REBOOTING INTO SETUP MODE", 1, true);
-  canvas.drawText(24, 140, "JOIN WIFI: ENMEA-SETUP", 1, true);
+  canvas.drawText(24, 60, "PROFILE FORGOTTEN", 2, true);
+  canvas.drawText(24, 100, settings.profiles[cleared].name, 2, true);
   canvas.present(EInkDisplay::HALF_REFRESH);
-  delay(500);
+
+  settings.profiles[cleared] = NmeaProfile{};
+  const int next = settings.firstUsed();
+  settings.activeIndex = static_cast<int8_t>(next);
+  saveAppSettings(settings);
+
+  if (next >= 0) {
+    delay(600);
+    applyProfile(next);  // fall through to whatever else is stored
+    return;
+  }
+
+  // Nothing left: back to setup mode, which needs a reboot to rebuild the
+  // AP-only Wi-Fi state cleanly.
+  Serial.println("[eNMEA] No profiles left - rebooting into setup mode");
+  canvas.drawText(24, 140, "NO PROFILES LEFT - REBOOTING TO SETUP", 1, true);
+  canvas.present(EInkDisplay::FAST_REFRESH);
+  delay(800);
   ESP.restart();
 }
 
@@ -121,18 +190,43 @@ void handleGestures() {
     }
   }
 
-  // BACK held -> erase settings, reboot to the setup AP. Timed here rather
+  // UP/DOWN step through saved profiles without applying anything; CONFIRM
+  // commits. Browsing is free, so a mis-press costs nothing.
+  if (!provisioningOnly && settings.usedCount() > 1) {
+    const bool up = input.wasPressed(InputManager::BTN_UP);
+    const bool down = input.wasPressed(InputManager::BTN_DOWN);
+    if (up || down) {
+      selectedIndex = settings.nextUsed(selectedIndex, up ? -1 : 1);
+      if (selectedIndex >= 0) {
+        char banner[64];
+        std::snprintf(banner, sizeof(banner), "PROFILE %d: %s - CONFIRM TO USE", selectedIndex + 1,
+                      settings.profiles[selectedIndex].name);
+        showHoldBanner(banner);
+      }
+    }
+  }
+  if (!provisioningOnly && input.wasPressed(InputManager::BTN_CONFIRM)) {
+    if (selectedIndex >= 0 && selectedIndex != settings.activeIndex) {
+      applyProfile(selectedIndex);
+      return;
+    }
+  }
+
+  // BACK held -> forget the active profile. Timed here rather
   // than with getHeldTime(), whose documented span is first-press to
   // final-release - not the "still held right now" this gesture needs.
   if (input.isPressed(InputManager::BTN_BACK)) {
     if (backHoldStartMs == 0) backHoldStartMs = millis();
     const unsigned long held = millis() - backHoldStartMs;
     if (held >= SETTINGS_ERASE_HOLD_MS) {
-      eraseSettingsAndReboot();  // does not return
+      backHoldStartMs = 0;
+      backHintShown = false;
+      forgetActiveProfile();
+      return;
     }
     if (held >= HOLD_FEEDBACK_MS && !backHintShown) {
       backHintShown = true;
-      showHoldBanner("KEEP HOLDING TO ERASE SETTINGS");
+      showHoldBanner("KEEP HOLDING TO FORGET THIS PROFILE");
     }
   } else {
     backHoldStartMs = 0;
@@ -150,7 +244,7 @@ void drawSetupScreen(const char* headline) {
   canvas.present(EInkDisplay::HALF_REFRESH);
 }
 
-bool connectToWifi() {
+bool connectToWifi(const NmeaProfile& profile) {
   // WiFi.status() alone only says "not connected", not why - hook the
   // ESP-IDF disconnect event for the actual 802.11 reason code (wrong
   // password vs. AP not found vs. something else). Diagnostic only, not
@@ -187,7 +281,7 @@ bool connectToWifi() {
     bool sawExactMatch = false;
     for (int i = 0; i < found; ++i) {
       const String ssid = WiFi.SSID(i);
-      const bool exact = ssid == settings.ssid;
+      const bool exact = ssid == profile.ssid;
       sawExactMatch = sawExactMatch || exact;
       // SSID wrapped in brackets and length printed alongside it so a
       // trailing space or other invisible character is visible in the log
@@ -197,12 +291,12 @@ bool connectToWifi() {
                     static_cast<int>(WiFi.encryptionType(i)), exact ? "  <-- MATCHES configured SSID" : "");
     }
     if (!sawExactMatch) {
-      Serial.printf("[eNMEA] WARNING: configured SSID '%s' not present in the scan above.\n", settings.ssid);
+      Serial.printf("[eNMEA] WARNING: configured SSID '%s' not present in the scan above.\n", profile.ssid);
     }
   }
   WiFi.scanDelete();
 
-  WiFi.begin(settings.ssid, settings.password);
+  WiFi.begin(profile.ssid, profile.password);
   const unsigned long start = millis();
   while (WiFi.status() != WL_CONNECTED && millis() - start < WIFI_CONNECT_TIMEOUT_MS) {
     delay(200);
@@ -252,19 +346,23 @@ void setup() {
   }
 
   const bool hasSettings = loadAppSettings(settings);
+  selectedIndex = settings.activeIndex;
 
-  if (!hasSettings) {
-    Serial.println("[eNMEA] No saved config - starting setup AP 'eNMEA-Setup'");
+  if (!hasSettings || !settings.hasActive()) {
+    Serial.printf("[eNMEA] No usable profile (%d stored) - starting setup AP '%s'\n", settings.usedCount(),
+                  SETUP_AP_SSID);
     drawSetupScreen("SETUP MODE");
     portal.beginAsAccessPoint();
     return;  // loop() services the portal and the buttons until the user saves
   }
 
-  Serial.printf("[eNMEA] Connecting to '%s'...\n", settings.ssid);
+  const NmeaProfile& profile = settings.profiles[settings.activeIndex];
+  Serial.printf("[eNMEA] Profile %d/%d '%s' - connecting to '%s'...\n", settings.activeIndex + 1,
+                settings.usedCount(), profile.name, profile.ssid);
   canvas.drawText(20, 40, "CONNECTING...", 2, true);
   canvas.present(EInkDisplay::HALF_REFRESH);
 
-  if (!connectToWifi()) {
+  if (!connectToWifi(profile)) {
     Serial.println("[eNMEA] Wi-Fi connect failed - falling back to setup AP");
     drawSetupScreen("WIFI FAILED");
     portal.beginAsAccessPoint();
@@ -275,14 +373,14 @@ void setup() {
                 WiFi.localIP().toString().c_str(), WiFi.gatewayIP().toString().c_str(),
                 WiFi.subnetMask().toString().c_str(), WiFi.RSSI(), WiFi.channel());
 
-  nmeaSource.begin(settings);
+  nmeaSource.begin(profile);
   // The settings page stays up for the whole session - on this IP, and on the
   // setup AP alongside it, so it is reachable even when the saved source
   // address is wrong for wherever the device now is.
   portal.beginOnStation();
 
   canvas.clear();
-  dashboard.drawChrome(settings);
+  dashboard.drawChrome(profile);
   canvas.present(EInkDisplay::FULL_REFRESH);
 
   provisioningOnly = false;

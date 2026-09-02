@@ -38,3 +38,5 @@ int feedStream(NmeaLineReader& reader, const char* stream, char* lastLine);
 void runParserTests();
 void runAisTests();
 void runLineReaderTests();
+
+void runProfileTests();

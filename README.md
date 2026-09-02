@@ -41,6 +41,10 @@ e-reader again, you don't need CrossInk at all - just this project and
   into an 8-box dashboard grid (POSITION / SPEED / COURSE / HEADING /
   SEA TEMP / DEPTH / WIND / AIS TGTS - labels are kept short so they can be
   drawn at a legible size).
+- Stores up to 8 named source profiles (`MAX_PROFILES`, `AppSettings.h`) and
+  switches between them from the buttons - UP/DOWN to pick, CONFIRM to apply,
+  reconnecting in place rather than rebooting. Built for bench use, where every
+  AIS unit and gateway has its own access point, address and port.
 - Shows battery percentage in the status row, read from the X3's BQ27220 fuel
   gauge over I2C. Worth watching: a constant Wi-Fi station, an always-on SoftAP
   and a 2-second refresh draw far more than the e-reader firmware did.

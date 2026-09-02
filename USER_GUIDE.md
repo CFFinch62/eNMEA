@@ -165,6 +165,33 @@ Two things that look like faults but aren't:
 
 ---
 
+## Profiles — for benches and shelves of equipment
+
+eNMEA stores **up to eight complete configurations** — name, Wi-Fi network and
+password, protocol, host and port — and switches between them from the device's
+own buttons. This is what makes it practical for checking a shelf of AIS units,
+multiplexers and gateways, where every product ships with a different access
+point, address and port.
+
+Set them up once from the settings page, then:
+
+| Button | Does |
+| --- | --- |
+| **UP** / **DOWN** | Step through saved profiles. The name appears on screen; nothing changes yet. |
+| **CONFIRM** | Apply the one shown — the device reconnects in a few seconds. No phone, no reboot. |
+| **BACK** (hold 3 s) | Forget the profile in use and fall back to the next one stored. |
+
+Browsing with UP/DOWN is free: nothing is applied until you press CONFIRM, so a
+stray press never interrupts a feed you're watching.
+
+The active profile's name is shown in the title line, so there is never any
+doubt which one is running. Switching resets the sentence counters — carrying
+the last unit's totals over would make a silent device look alive.
+
+**Erasing everything** is deliberately not on a button. Hold BACK and you lose
+one profile; to clear all eight there's a separate button at the bottom of the
+settings page.
+
 ## Changing settings
 
 Three ways, in order of how little has to be working:

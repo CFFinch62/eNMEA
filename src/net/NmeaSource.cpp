@@ -34,14 +34,25 @@ const char* NmeaSource::stateText() const {
   }
 }
 
-bool NmeaSource::begin(const AppSettings& settings) {
-  settings_ = settings;
+void NmeaSource::end() {
+  tcp_.stop();
+  udp_.stop();
+  state_ = SourceState::Idle;
+  lastRxMs_ = 0;
+  bytesReceived_ = 0;
+  connectAttempts_ = 0;
+  lastReconnectAttemptMs_ = 0;
+  lineReader_ = NmeaLineReader{};  // drop any half-received sentence
+}
+
+bool NmeaSource::begin(const NmeaProfile& profile) {
+  settings_ = profile;
   lastReconnectAttemptMs_ = 0;
   lastRxMs_ = 0;
   bytesReceived_ = 0;
   connectAttempts_ = 0;
 
-  if (settings_.protocol == AppSettings::Protocol::UDP) {
+  if (settings_.protocol == NmeaProfile::Protocol::UDP) {
     if (udp_.begin(settings_.port)) {
       Serial.printf("[eNMEA] UDP: listening on port %u for broadcast traffic.\n", settings_.port);
       Serial.println("[eNMEA] UDP: the Host setting is ignored in this mode - the device does not dial out.");
@@ -180,7 +191,7 @@ void NmeaSource::pollTcp(NmeaData& data, SentenceTable& table) {
 }
 
 void NmeaSource::poll(NmeaData& data, SentenceTable& table) {
-  if (settings_.protocol == AppSettings::Protocol::UDP) {
+  if (settings_.protocol == NmeaProfile::Protocol::UDP) {
     pollUdp(data, table);
   } else {
     pollTcp(data, table);

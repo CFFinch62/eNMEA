@@ -20,6 +20,7 @@ int main() {
   runLineReaderTests();
   runParserTests();
   runAisTests();
+  runProfileTests();
 
   std::printf("\n==================\n%d checks, %d failed\n", g_checks, g_failures);
   return g_failures == 0 ? 0 : 1;

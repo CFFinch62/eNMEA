@@ -119,17 +119,25 @@ void Dashboard::drawBox(int x, int y, int w, int h, const char* label) {
   canvas_.drawHLine(x + 1, y + 24, w - 2, true);
 }
 
-void Dashboard::drawChrome(const AppSettings& settings) {
-  canvas_.drawText(8, TITLE_Y, "eNMEA - NMEA 0183 WI-FI VERIFIER", TEXT_BODY, true);
+void Dashboard::drawChrome(const NmeaProfile& profile) {
+  // The active profile's name leads the title. On a bench with eight saved
+  // configurations, which one is running matters more than the product name.
+  char title[64];
+  if (profile.name[0] != '\0') {
+    std::snprintf(title, sizeof(title), "eNMEA - %s", profile.name);
+  } else {
+    std::snprintf(title, sizeof(title), "eNMEA - NMEA 0183 WI-FI VERIFIER");
+  }
+  canvas_.drawText(8, TITLE_Y, title, TEXT_BODY, true);
   canvas_.drawHLine(0, DIVIDER_Y, canvas_.width(), true);
 
   // Source address stays fine-print: it's long (an IPv4 host and port), and
   // it's something you read once while setting up, not at a glance.
   char protoLine[80];
-  if (settings.protocol == AppSettings::Protocol::UDP) {
-    std::snprintf(protoLine, sizeof(protoLine), "UDP LISTEN :%u", settings.port);
+  if (profile.protocol == NmeaProfile::Protocol::UDP) {
+    std::snprintf(protoLine, sizeof(protoLine), "UDP LISTEN :%u", profile.port);
   } else {
-    std::snprintf(protoLine, sizeof(protoLine), "TCP %s:%u", settings.host, settings.port);
+    std::snprintf(protoLine, sizeof(protoLine), "TCP %s:%u", profile.host, profile.port);
   }
   canvas_.drawText(canvas_.width() - canvas_.textWidth(protoLine, TEXT_FINE) - 8, TITLE_Y + 4, protoLine, TEXT_FINE,
                    true);
@@ -140,7 +148,9 @@ void Dashboard::drawChrome(const AppSettings& settings) {
   // how to switch the device off, and how to get back to the settings page.
   // Drawn once here because none of it changes while the dashboard is up.
   canvas_.drawText(8, canvas_.height() - 16,
-                   "HOLD POWER 2S: SHUT DOWN    HOLD BACK 3S: ERASE SETTINGS    SETUP AP: ENMEA-SETUP", TEXT_FINE,
+                   "UP/DOWN: PICK PROFILE   CONFIRM: APPLY   HOLD BACK 3S: FORGET IT   "
+                   "HOLD POWER 2S: OFF   AP: ENMEA-SETUP",
+                   TEXT_FINE,
                    true);
 
   const int colW = gridColW();

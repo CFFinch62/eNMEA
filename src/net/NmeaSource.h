@@ -32,7 +32,12 @@ enum class SourceState : uint8_t {
 // Getting this backwards is the single most common reason no data shows up.
 class NmeaSource {
  public:
-  bool begin(const AppSettings& settings);
+  bool begin(const NmeaProfile& profile);
+
+  // Closes whatever socket is open and resets state, so a different profile can
+  // be applied without rebooting. Leaving the old socket open would hold an
+  // lwIP descriptor and, for TCP, keep the previous device connected.
+  void end();
 
   // Call every loop() iteration. Reads whatever is available without
   // blocking, retries a dropped/never-established connection periodically.
@@ -52,7 +57,7 @@ class NmeaSource {
   void handleByte(uint8_t c, NmeaData& data, SentenceTable& table);
   void noteStall();
 
-  AppSettings settings_;
+  NmeaProfile settings_;
   WiFiClient tcp_;
   WiFiUDP udp_;
   NmeaLineReader lineReader_;
