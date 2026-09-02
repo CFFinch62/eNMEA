@@ -94,7 +94,14 @@ decisions" below) - nothing here depends on it being present.
 
 `docs/` is a browser-based installer built on
 [ESP Web Tools](https://esphome.github.io/esp-web-tools/): plug the X3 into a
-computer, open the page in Chrome or Edge, press Install. No Python, no
+computer, open **<https://cffinch62.github.io/eNMEA/>** in Chrome or Edge, and
+press Install.
+
+Open the hosted URL, not `docs/index.html` from disk. Chrome counts `file://`
+as a secure context, so the installer starts and only fails later when the
+manifest fetch is blocked by CORS - reported as "Failed to download manifest",
+which points nowhere near the real cause. The page now detects this and says so,
+but the short version is: use the link. No Python, no
 PlatformIO, no drivers, no command line. GitHub Pages serves it over HTTPS,
 which Web Serial requires.
 

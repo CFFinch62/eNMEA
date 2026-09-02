@@ -105,6 +105,14 @@ footer {
     <figcaption>What you get: the device reading a live NMEA feed. Sentence types down the left, values across the right.</figcaption>
   </figure>
 
+  <div id="file-warning" class="unsupported" hidden>
+    <b>This page was opened from a file on disk, so it cannot install anything.</b>
+    A local page has no web origin, so the browser blocks it from reading the
+    firmware manifest — you would get a CORS error rather than a useful message.
+    Open <a href="https://cffinch62.github.io/eNMEA/">cffinch62.github.io/eNMEA</a>
+    instead.
+  </div>
+
   <section>
     <div class="install">
       <esp-web-install-button manifest="manifest.json?v=92448e4">
@@ -193,6 +201,17 @@ footer {
 <!-- ESP Web Tools: flashes ESP32 devices over Web Serial. Pinned rather than
      floating on @latest, so a breaking upstream release cannot silently take
      the installer down for end users. -->
+<script>
+  // Chrome treats file:// as a secure context, so ESP Web Tools' HTTPS guard
+  // passes and it goes on to fetch the manifest - which is then blocked by
+  // CORS, because a local page's origin is "null". The user sees "Failed to
+  // download manifest", which points nowhere near the actual problem. Catch it
+  // here and say what is really wrong.
+  if (location.protocol === "file:") {
+    document.getElementById("file-warning").hidden = false;
+    document.querySelector("esp-web-install-button").hidden = true;
+  }
+</script>
 <script type="module" src="https://cdn.jsdelivr.net/npm/esp-web-tools@10.4.0/dist/web/install-button.js"></script>
 </body>
 </html>
