@@ -347,9 +347,13 @@ for where the device now is. The setup AP now stays up alongside the station
 connection (`WIFI_AP_STA`), which addresses that directly; the button gesture
 is the belt-and-braces path for when even that fails.
 
-**Still open**: verify on real hardware. The gestures, the deep-sleep sequence
-and the latch handling have not been run on a device - see "How to verify"
-below.
+**Verified on hardware 2026-09-01**: the BACK hold-3s gesture works - it
+erases the saved settings and the device comes back up in setup mode.
+
+**Still open**: the POWER hold-2s shutdown, and with it the whole deep-sleep
+sequence (panel sleep, battery-latch release, rail power-down, wake arming).
+Test it **on battery, unplugged from USB** - see check 4 under "How to verify"
+below for why USB power hides a broken shutdown.
 
 ### Task 3: Simulator integration (optional, scoped separately)
 

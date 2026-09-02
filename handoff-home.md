@@ -206,10 +206,17 @@ The X3 (`7C:E8:B1:70:B7:40`) at 192.168.1.71:
 - Both `pio run -e x3` and `-e x4` compile clean, no warnings from project
   sources (x3: 34.8% flash, 12.7% RAM)
 
-**Not yet verified:** the power-off path and the BACK-hold settings erase have
-not been exercised on the device. Test power-off **on battery, unplugged from
-USB** — on USB the latch cut is invisible because the USB rail keeps the chip
-fed, so a broken shutdown looks identical to a working one.
+- **BACK held 3 s erases settings and reboots into setup mode** — confirmed
+  working on the device.
+
+**Not yet verified:** the POWER hold-2s shutdown, and with it the deep-sleep
+sequence it drives (panel sleep, battery-latch release, rail power-down, wake
+arming). Test it **on battery, unplugged from USB** — on USB the latch cut is
+invisible because the USB rail keeps the chip fed, so a broken shutdown looks
+identical to a working one. Confirm the full cycle: 2-second hold powers it
+down, a press wakes it, and it survives several off/on cycles (a latch or GPIO
+hold left set wrongly shows up as a board that won't turn back on, or a panel
+that stays blank after wake).
 
 ---
 
