@@ -156,7 +156,7 @@ footer {
       <li><span><strong>Press Install</strong>, then pick the device from the list your browser shows. It will be named something like <code>USB JTAG/serial debug unit</code>.</span></li>
       <li><span><strong>Wait about a minute.</strong> The page erases the old firmware and writes the new one. Don't unplug during this.</span></li>
       <li><span><strong>The screen shows SETUP MODE</strong> when it's done, and the device starts its own Wi-Fi network called <code>eNMEA-Setup</code>.</span></li>
-      <li><span><strong>Join that network from your phone</strong> and open <code>http://192.168.7.1/</code> to enter your Wi-Fi details and where your NMEA data comes from. The <a href="https://github.com/CFFinch62/eNMEA/blob/main/USER_GUIDE.md">user guide</a> walks through it.</span></li>
+      <li><span><strong>Join that network from your phone</strong> and open <code>http://192.168.7.1/</code> to enter your Wi-Fi details and where your NMEA data comes from. You can store up to eight of these and switch between them later with the device's own buttons — useful if you check more than one piece of equipment. The <a href="https://github.com/CFFinch62/eNMEA/blob/main/USER_GUIDE.md">user guide</a> walks through it.</span></li>
     </ol>
   </section>
 
@@ -219,7 +219,7 @@ footer {
           <tr><td>It won't join my Wi-Fi</td><td>The device is <b>2.4 GHz only</b> — it has no 5 GHz radio. If your network is 5 GHz-only, or your router steers devices to 5 GHz under the same network name, it cannot connect. Check the password too. After 15 seconds of failing it returns to <code>SETUP MODE</code> by itself, so you are never locked out.</td></tr>
           <tr><td>Connected, but the boxes stay empty</td><td>Look at the word after <code>SOURCE:</code> on screen. <code>LISTENING</code> means you chose UDP but your equipment expects TCP — change the protocol on the setup page. <code>FAILED</code> means it cannot reach the address you entered. <code>NO DATA</code> means the connection is fine and your equipment stopped sending.</td></tr>
           <tr><td>It worked at home but not on the boat</td><td>If you use TCP, the Host address belongs to a particular network. Move the device somewhere else and that address is usually wrong. Re-enter it from the setup page.</td></tr>
-          <tr><td>How do I get back to the settings?</td><td>Join <code>eNMEA-Setup</code> and open <code>192.168.7.1</code> — that network stays available the whole time the device is on, even while it is connected to your Wi-Fi. Or hold the <b>BACK</b> button for 3 seconds to clear everything and start over.</td></tr>
+          <tr><td>How do I get back to the settings?</td><td>Join <code>eNMEA-Setup</code> and open <code>192.168.7.1</code> — that network stays available the whole time the device is on, even while it is connected to your Wi-Fi. Or hold the <b>BACK</b> button for 3 seconds to forget the settings currently in use and fall back to any others you have stored.</td></tr>
           <tr><td>How do I turn it off?</td><td>Hold the <b>power</b> button for 2 seconds. Press it once to turn back on.</td></tr>
           <tr><td>It still shows a picture when it's off</td><td>Normal. This kind of screen keeps its last image with no power at all — it is not still running.</td></tr>
           <tr><td>The battery goes down faster than before</td><td>Expected. eNMEA keeps Wi-Fi running and redraws the screen every two seconds, which is far more work than turning pages. The charge level is shown top right.</td></tr>

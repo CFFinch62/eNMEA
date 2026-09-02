@@ -187,11 +187,12 @@ Three ways in, in order of how little has to be working for them to succeed:
 
 1. **The setup AP.** `eNMEA-Setup` is up whenever the device is on, whether or
    not it joined your Wi-Fi. Join it and browse to `http://192.168.7.1/`.
-2. **Hold BACK for 3 seconds** on the device. It erases the saved settings and
-   reboots into setup mode. A "KEEP HOLDING TO ERASE SETTINGS" line appears in
-   the status row about half a second in, so the gesture isn't a silent trap.
-   The settings page has an equivalent "Forget settings & reboot to setup"
-   button.
+2. **Hold BACK for 3 seconds** on the device. That forgets the profile
+   currently in use and falls back to the next one stored; with none left it
+   reboots into setup mode. A "KEEP HOLDING TO FORGET THIS PROFILE" line
+   appears in the status row about half a second in, so the gesture isn't a
+   silent trap. Erasing *all* profiles is deliberately not on a button - it
+   lives at the bottom of the settings page.
 3. **Erase NVS over USB**: `pio run -t erase`. Only needed if the firmware
    itself won't start.
 
@@ -317,14 +318,17 @@ actually catch regressions.
   need any of that, so `EinkCanvas` draws straight onto `EInkDisplay`'s raw
   framebuffer with a minimal built-in font instead. Less capable, but zero
   coupling to CrossInk internals.
-- **Buttons do two things only: power off, and erase settings.** Both are
-  holds, not taps - a tap is too easy to hit by accident on a device whose
-  only feedback is a 2-second e-ink redraw. SSID/password entry stays
-  web-based: typing a WPA2 password on a 7-button ADC ladder is bad UX even
-  with a working keyboard component, so the device-side escape hatch is
-  "erase and start over", not on-device editing. The X3/X4 ladder does expose
-  BACK/CONFIRM/LEFT/RIGHT (ADC pin 1) and UP/DOWN (ADC pin 2) plus POWER on
-  GPIO3, so there's room for more gestures if a real need shows up.
+- **Buttons switch profiles; they don't edit them.** UP/DOWN step through
+  stored profiles and CONFIRM applies one - the common bench action, done
+  without a phone. POWER and BACK are holds rather than taps, because a tap is
+  too easy to hit by accident on a device whose only feedback is a 2-second
+  e-ink redraw; UP/DOWN/CONFIRM are taps because browsing applies nothing and
+  a mis-press costs nothing.
+
+  Entering SSIDs and passwords stays web-based: typing a WPA2 password on a
+  7-button ADC ladder is bad UX even with a working keyboard component. The
+  split is deliberate - the phone is for setup you do once per device, the
+  buttons are for the switching you do all day. LEFT/RIGHT remain free.
 
 - **The setup AP stays up alongside the Wi-Fi connection (`WIFI_AP_STA`).**
   A station-only settings page is unreachable in exactly the situation you
@@ -388,8 +392,11 @@ too: `freeink-sdk` (the hardware libraries this links against) and CrossInk
 
 - No Fahrenheit option for water temp, no feet option for depth - Celsius
   and meters only in v1.
-- `AppSettings::host` is unused in UDP mode; the web form doesn't grey it
+- `NmeaProfile::host` is unused in UDP mode; the web form doesn't grey it
   out, it's just labelled "TCP only" and ignored server-side.
+- Profiles are edited one slot at a time on the settings page. There's no
+  duplicate-a-profile action, which would save typing when two units differ
+  only by port - the KC-2W's 10110/10111 pair being exactly that case.
 - The status row reports `LISTENING` / `CONNECTING` / `CONNECTED` / `NO DATA`
   / `FAILED`, but nothing on screen says *why* a TCP connect failed - that
   detail only goes to the serial log.

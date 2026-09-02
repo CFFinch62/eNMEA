@@ -217,6 +217,39 @@ the person who needs them to be true.
 
 ---
 
+## Source profiles - the bench workflow
+
+Added after the firmware was working, once the actual use case became clear:
+this is not a device that gets configured once and installed on a boat. It gets
+pointed at a different piece of equipment every few minutes - a shelf of AIS
+units, multiplexers and gateways, each with its own access point, IP and port.
+
+The original single-configuration model cost a couple of minutes per unit:
+join a different AP on a phone, retype four fields, wait out a 15-second
+reboot. Now `AppSettings` stores 8 named profiles and the buttons switch
+between them - UP/DOWN to browse, CONFIRM to apply, reconnecting in place.
+
+Decisions worth not re-litigating:
+
+- **Browsing applies nothing.** UP/DOWN only move a selection; CONFIRM commits.
+  A stray press on a bench must never tear down a feed being watched.
+- **Switching resets the counters.** Carrying the previous unit's sentence
+  totals into the next one would make a silent device look alive - the exact
+  false positive this tool exists to prevent.
+- **BACK forgets one profile, not all of them.** It used to erase everything,
+  which was fine when "everything" was one config and disastrous when it is
+  eight. A full wipe lives on the settings page.
+- **One versioned NVS blob, not ~48 keys.** A partial write cannot leave a
+  half-configured profile, and an unrecognised layout comes up unconfigured
+  rather than joining a network named from arbitrary bytes. The pre-profile
+  NVS was rejected cleanly on first boot - visible in the log as
+  `No usable profile (0 stored)`.
+- **Editing an inactive profile does not reboot.** Only a change to the running
+  configuration restarts anything, so the next unit can be prepped while still
+  watching the current one.
+
+---
+
 ## Getting it to end users
 
 The firmware working is only half of it. A marine electronics user is not going

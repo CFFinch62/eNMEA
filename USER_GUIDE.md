@@ -204,10 +204,10 @@ settings are completely wrong for where you are.
 **2. From your network.** The settings page is also at `http://<device-ip>/` —
 the address shown on the dashboard status line.
 
-**3. Start over.** Either press **"Forget settings & reboot to setup"** at the
-bottom of the settings page, or **hold the BACK button for 3 seconds** on the
-device. Both erase the saved Wi-Fi and source settings and return to
-`SETUP MODE`.
+**3. Start over.** **Hold BACK for 3 seconds** to forget just the profile in
+use — the device falls back to the next one stored, or returns to `SETUP MODE`
+if that was the last. To erase *all eight*, use **"Erase all profiles"** at the
+bottom of the settings page.
 
 ---
 

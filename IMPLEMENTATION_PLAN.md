@@ -312,8 +312,10 @@ setup), handled by `handleGestures()` in `src/main.cpp`:
   screen, sleeps the panel, drops the battery latch, cuts switched rails and
   deep-sleeps armed to wake on the power button. See the PowerManager ledger
   entry above for why it does not use the SDK's convenience helper.
-- **BACK held 3s -> erase settings and reboot into setup mode.** The web form
-  grew an equivalent `POST /forget` button.
+- **BACK held 3s -> forget the profile in use**, falling back to the next one
+  stored (reboots to setup mode only when that was the last). Erasing all
+  profiles is a separate button on the settings page - a gesture that could
+  wipe eight configurations at once would be its own support call.
 
 Both show a "KEEP HOLDING..." line in the status row about 500ms in, so
 neither is a silent trap. The power gesture is armed only after the button has
@@ -335,8 +337,9 @@ is the belt-and-braces path for when even that fails.
 
 **Verified on hardware 2026-09-01**, both gestures:
 
-- BACK held 3s erases the saved settings and the device comes back up in
-  setup mode.
+- BACK held 3s clears saved settings and the device comes back up in setup
+  mode. (Since reworked to forget only the profile in use - see the profiles
+  entry below.)
 - POWER held 2s shuts the device down, which exercises the whole deep-sleep
   sequence behind it: panel sleep, battery-latch release, rail power-down and
   wake arming, in the hand-rolled order described above.
@@ -346,6 +349,32 @@ off/on cycling - a GPIO hold left set wrongly accumulates across cycles, so a
 board that won't power back on (or wakes to a blank panel) after several
 cycles would point at `holdPowerRails()` / `releaseSdRail()` or the latch
 handling in `PowerControl.cpp`.
+
+### Task 2b: Source profiles - DONE (2026-09-01)
+
+`AppSettings` holds up to 8 `NmeaProfile` entries (name/ssid/password/protocol/
+host/port), stored as one versioned NVS blob rather than ~48 loose keys: a
+partial write cannot leave a half-configured profile, and a build that does not
+recognise the layout comes up unconfigured instead of joining a network named
+from arbitrary bytes.
+
+Driven from the buttons - UP/DOWN browse, CONFIRM applies - because the tool is
+used on a bench, switching between AIS units and gateways that each have their
+own AP, address and port. Applying calls `NmeaSource::end()` then `begin()`
+rather than rebooting (~5s vs ~15s) and resets `NmeaData`/`SentenceTable`;
+carrying the previous unit's counters into the next would make a silent device
+look alive.
+
+Selection logic (`nextUsed`, `firstUsed`, `indexValid`) is pure data handling
+and covered by host tests: wrapping past either end, skipping empty slots, an
+active index left pointing at an emptied slot, and the fallback after BACK
+forgets the active profile.
+
+**Not done, deliberately**: a Wi-Fi scan dropdown for the SSID field. Scanning
+while connected is disruptive, so it needs its own explicit button rather than
+running on every page load. Typing SSIDs is acceptable for now. Also absent: a
+duplicate-profile action, which would help for units differing only by port
+(the KC-2W's 10110/10111 pair).
 
 ### Task 3: Simulator integration (optional, scoped separately)
 
