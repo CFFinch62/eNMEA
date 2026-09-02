@@ -104,6 +104,20 @@ Chrome/Edge on desktop only - not Safari, not Firefox, not any phone browser.
 On Linux the user still needs serial-port permission (`dialout` group or the
 PlatformIO udev rules), the same hurdle as flashing locally. The page says both.
 
+**Installing resets saved settings.** The merged image spans the NVS partition
+at `0x9000`, and esptool erases sectors before writing, so a fresh install
+always comes up in `SETUP MODE`. Verified on hardware, not assumed. That is the
+right behaviour for a new device; it does mean a firmware *update* costs the
+user a re-provision.
+
+**Going back to the e-reader** is a link, not a hosted binary. CrossInk has its
+own one-click web installer at
+[inky.crossink.dev](https://inky.crossink.dev/#flash-tools), which serves the
+current official build for each device model. Hosting copies here would mean
+shipping someone else's firmware, going stale, and owning support for it.
+Nothing eNMEA does blocks the round trip - flashing rewrites internal flash
+only, and the SD card is never touched.
+
 ## Build & flash
 
 ```sh

@@ -141,6 +141,27 @@ footer {
   </section>
 
   <section>
+    <h2>Going back to the e-reader</h2>
+    <p>Installing eNMEA is not a one-way door. CrossInk — the e-reader firmware
+    these devices usually run — has its own one-click web installer, and it is the
+    right way back:</p>
+    <p><a href="https://inky.crossink.dev/#flash-tools"><strong>inky.crossink.dev</strong></a>
+    — pick your device model and press flash, exactly like this page.</p>
+    <p>Two things worth knowing before you switch either direction:</p>
+    <div class="scroll">
+      <table>
+        <tbody>
+          <tr><td>Your books are safe</td><td>Everything on the SD card is untouched. Flashing only rewrites the chip's internal memory; eNMEA never reads or writes the card at all.</td></tr>
+          <tr><td>Settings do not survive</td><td>Installing anything resets the saved Wi-Fi and source settings, in both directions. Expect to set the device up again after a switch — a minute's work, not a problem.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>We deliberately don't host CrossInk builds here. Getting them from the
+    project itself means you get the current, official firmware for your exact
+    model rather than a copy that quietly falls behind.</p>
+  </section>
+
+  <section>
     <h2>Prefer the command line?</h2>
     <p>The same image flashes with esptool, no browser involved:</p>
     <p><code>esptool --chip esp32c3 write-flash 0x0 eNMEA-x3-&lt;version&gt;.bin</code></p>
