@@ -15,6 +15,9 @@ means 377 valid GGA sentences with 19 checksum failures, the most recent one
 under a second ago - the parenthesised count is the thing this tool exists to
 surface. `HDG --` and `DPT --` are sentence types the feed never sent.*
 
+**[Install it from your browser](https://cffinch62.github.io/eNMEA/)** — no
+toolchain needed. Operation is covered in **[USER_GUIDE.md](USER_GUIDE.md)**.
+
 This is **not** a CrossInk/CrossPoint fork or plugin. It shares no code with
 that firmware's app layer, only two low-level hardware libraries from the
 open-source `freeink-sdk` that CrossInk itself is built on (the e-ink panel
@@ -96,18 +99,18 @@ decisions" below) - nothing here depends on it being present.
 
 ## Installing without a toolchain (for end users)
 
-`docs/` is a browser-based installer built on
-[ESP Web Tools](https://esphome.github.io/esp-web-tools/): plug the X3 into a
-computer, open **<https://cffinch62.github.io/eNMEA/>** in Chrome or Edge, and
-press Install.
+### [→ Install eNMEA from your browser](https://cffinch62.github.io/eNMEA/)
 
-Open the hosted URL, not `docs/index.html` from disk. Chrome counts `file://`
-as a secure context, so the installer starts and only fails later when the
-manifest fetch is blocked by CORS - reported as "Failed to download manifest",
-which points nowhere near the real cause. The page now detects this and says so,
-but the short version is: use the link. No Python, no
-PlatformIO, no drivers, no command line. GitHub Pages serves it over HTTPS,
-which Web Serial requires.
+Plug the X3 into a computer, open that page in Chrome or Edge, and press
+Install. No Python, no PlatformIO, no drivers, no command line. It is
+[ESP Web Tools](https://esphome.github.io/esp-web-tools/) served from `docs/`
+by GitHub Pages, over the HTTPS that Web Serial requires.
+
+**Use the hosted link, not `docs/index.html` from disk.** Chrome counts
+`file://` as a secure context, so the installer starts and only fails later,
+when the manifest fetch is blocked by CORS - reported as "Failed to download
+manifest", which points nowhere near the real cause. The page detects this and
+explains itself, but the short version is: use the link.
 
 Rebuild it after a firmware change:
 

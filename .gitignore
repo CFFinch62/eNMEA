@@ -6,7 +6,9 @@ compile_commands.json
 platformio.local.ini
 
 # Cloned separately per README.md "Getting freeink-sdk" - not vendored here.
-/freeink-sdk/
+# No trailing slash: with one, git only ignores a real directory, and a
+# symlink to a shared clone elsewhere gets committed as a dangling link.
+/freeink-sdk
 
 # Camera originals: kept on disk, not in the repo - HEIC renders nowhere
 # on GitHub. Converted copies live in docs/images/.
