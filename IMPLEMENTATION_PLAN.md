@@ -347,13 +347,19 @@ for where the device now is. The setup AP now stays up alongside the station
 connection (`WIFI_AP_STA`), which addresses that directly; the button gesture
 is the belt-and-braces path for when even that fails.
 
-**Verified on hardware 2026-09-01**: the BACK hold-3s gesture works - it
-erases the saved settings and the device comes back up in setup mode.
+**Verified on hardware 2026-09-01**, both gestures:
 
-**Still open**: the POWER hold-2s shutdown, and with it the whole deep-sleep
-sequence (panel sleep, battery-latch release, rail power-down, wake arming).
-Test it **on battery, unplugged from USB** - see check 4 under "How to verify"
-below for why USB power hides a broken shutdown.
+- BACK held 3s erases the saved settings and the device comes back up in
+  setup mode.
+- POWER held 2s shuts the device down, which exercises the whole deep-sleep
+  sequence behind it: panel sleep, battery-latch release, rail power-down and
+  wake arming, in the hand-rolled order described above.
+
+Task 2 is complete. The one thing worth re-checking over time is *repeated*
+off/on cycling - a GPIO hold left set wrongly accumulates across cycles, so a
+board that won't power back on (or wakes to a blank panel) after several
+cycles would point at `holdPowerRails()` / `releaseSdRail()` or the latch
+handling in `PowerControl.cpp`.
 
 ### Task 3: Simulator integration (optional, scoped separately)
 

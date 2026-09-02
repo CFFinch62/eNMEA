@@ -5,9 +5,11 @@ session where eNMEA went from "never worked end to end" to "works on the
 bench." It records what was broken, what the actual causes were, and the
 things that would be expensive to rediscover.
 
-**State at end of session:** working. The X3 boots, joins Wi-Fi, connects to a
-TCP NMEA source, decodes and displays live data, and can be switched off and
-reconfigured from the device. Verified on real hardware, not just compiled.
+**State at end of session:** working, and every code path exercised on the
+device. The X3 boots, joins Wi-Fi, connects to a TCP NMEA source, decodes and
+displays live data, shows battery charge from the fuel gauge, and can be
+switched off and re-provisioned entirely from the buttons. Nothing here is
+"compiles, should work".
 
 ---
 
@@ -206,17 +208,19 @@ The X3 (`7C:E8:B1:70:B7:40`) at 192.168.1.71:
 - Both `pio run -e x3` and `-e x4` compile clean, no warnings from project
   sources (x3: 34.8% flash, 12.7% RAM)
 
-- **BACK held 3 s erases settings and reboots into setup mode** — confirmed
-  working on the device.
+- **BACK held 3 s erases settings and reboots into setup mode** — confirmed.
+- **POWER held 2 s shuts the device down** — confirmed. This is the whole
+  deep-sleep sequence working: panel sleep, battery-latch release, rail
+  power-down, and wake arming in the hand-rolled order described in bug 1.
 
-**Not yet verified:** the POWER hold-2s shutdown, and with it the deep-sleep
-sequence it drives (panel sleep, battery-latch release, rail power-down, wake
-arming). Test it **on battery, unplugged from USB** — on USB the latch cut is
-invisible because the USB rail keeps the chip fed, so a broken shutdown looks
-identical to a working one. Confirm the full cycle: 2-second hold powers it
-down, a press wakes it, and it survives several off/on cycles (a latch or GPIO
-hold left set wrongly shows up as a board that won't turn back on, or a panel
-that stays blank after wake).
+Every code path written tonight has now been run on the device.
+
+The one thing to keep half an eye on is *repeated* off/on cycling. GPIO holds
+survive a reset, so a wrongly-set one accumulates rather than showing up on the
+first try: the symptom would be a board that won't power back on, or that wakes
+to a blank panel, after several cycles rather than the first. If that ever
+appears, look at `holdPowerRails()` / `releaseSdRail()` in `setup()` and the
+latch loop in `PowerControl.cpp`.
 
 ---
 
