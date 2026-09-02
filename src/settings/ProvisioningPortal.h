@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AppSettings.h"
+#include "Product.h"
 
 // The setup access point's name and address.
 //
@@ -12,12 +13,11 @@
 // its own AP address: it would connect to itself and report a source failure
 // with everything apparently configured correctly. Sitting on a different
 // subnet makes eNMEA a good citizen with any gateway, not just that one.
-// Overridable per project: eNMEA and eAIS share this file byte-for-byte, but a
-// device flashed with eAIS must not advertise itself as eNMEA. Set
-// -DSETUP_AP_NAME='"..."' in platformio.ini rather than editing here, so the
-// two copies stay identical and check_shared.py stays quiet.
+// Derived from the product name, so setting SETUP_PRODUCT_NAME is enough for a
+// project to name both its access point and its setup page. Override
+// SETUP_AP_NAME directly only if the two need to differ.
 #ifndef SETUP_AP_NAME
-#define SETUP_AP_NAME "eNMEA-Setup"
+#define SETUP_AP_NAME SETUP_PRODUCT_NAME "-Setup"
 #endif
 inline constexpr const char* SETUP_AP_SSID = SETUP_AP_NAME;
 inline constexpr const char* SETUP_AP_IP = "192.168.7.1";
