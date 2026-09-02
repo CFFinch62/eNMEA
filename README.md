@@ -45,25 +45,39 @@ e-reader again, you don't need CrossInk at all - just this project and
 
 ## Getting freeink-sdk
 
-This repo does not vendor `freeink-sdk`. Clone it alongside `platformio.ini`:
+This repo does not vendor `freeink-sdk` (it's git-ignored). Clone it
+alongside `platformio.ini` **and check out the pinned commit**:
 
 ```sh
 git clone https://github.com/Free-Ink/freeink-sdk.git
+git -C freeink-sdk checkout fad70f28a982c978737410e535a4f7276ce28c19
 ```
 
-You should end up with `./freeink-sdk/libs/...` next to this README. You
-mentioned you're fine pulling the full CrossInk repo too if something's
-missing here - the SDK is the only thing this project actually needs from
-that world; CrossInk itself is just the reference this project's engineering
-decisions were pulled from (see "Design decisions" below), nothing here
-depends on CrossInk being present.
+You should end up with `./freeink-sdk/libs/...` next to this README.
 
-Last verified buildable against `freeink-sdk` commit `fad70f28a982c978737
-410e535a4f7276ce28c19` (2026-09-01, unpinned `main`). If a fresh clone fails
-with a `BoardConfig.h` `#error` about no `FREEINK_DEVICE_<NAME>` selected,
-that's this same drift risk recurring - `platformio.ini` already passes
+The checkout line is not optional ceremony. This project builds against
+upstream `main`, and that has already broken it once: a commit added a hard
+requirement in `BoardConfig.h` for a `-DFREEINK_DEVICE_<NAME>` build flag and
+`pio run` started failing with an `#error` before anything compiled. Cloning
+`main` gets you whatever it happens to be today; the pin above is the commit
+this project was last verified working against (2026-09-01, hardware-tested
+on an X3).
+
+To move to a newer SDK deliberately, check out the newer commit, build both
+envs, flash, and update the hash here. If a fresh clone fails with a
+`BoardConfig.h` `#error` about no `FREEINK_DEVICE_<NAME>` selected, that's
+the same drift recurring - `platformio.ini` already passes
 `-DFREEINK_DEVICE_X4`/`-DFREEINK_DEVICE_X3` per env, so check whether
-upstream renamed or added a new required flag.
+upstream renamed or added a required flag.
+
+If you'd rather have git enforce the pin than trust a README line, make the
+SDK a submodule: drop `/freeink-sdk/` from `.gitignore`, then
+`git submodule add https://github.com/Free-Ink/freeink-sdk.git` and commit it
+at the pinned commit. That costs a `--recurse-submodules` on every clone,
+which is the trade.
+
+CrossInk itself is only a reference for engineering decisions (see "Design
+decisions" below) - nothing here depends on it being present.
 
 ## Build & flash
 

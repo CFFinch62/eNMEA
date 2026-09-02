@@ -415,23 +415,23 @@ Each of these is independent and can be picked up in any order:
   on screen, so showing the target it couldn't reach next to it would close
   most of the gap.
 
-### Task 5: Repo hygiene
+### Task 5: Repo hygiene - DONE (2026-09-01)
 
-This directory is not yet a git repository. Before it accumulates much more
-work:
+`git init` done on 2026-09-01; branch `main`, initial commit `7b63dea` holding
+the full scaffold. Confirmed with the project owner that this is its own repo
+rather than part of a larger one.
 
-1. Confirm with whoever's driving whether this should be its own repo or
-   live inside a larger one - don't assume.
-2. If its own repo: `git init`, first commit should be the full current
-   scaffold (everything already in this tree), `.gitignore` already exists
-   and covers `.pio/`, `freeink-sdk/`, etc.
-3. Pin the `freeink-sdk` commit this project was verified against
-   somewhere durable (a comment in `platformio.ini`, or once it's a git
-   repo, consider making `freeink-sdk` an actual git submodule pinned to a
-   known-good commit instead of an unpinned fresh clone - the README's
-   "clone it" instruction currently gets whatever `main` happens to be at
-   clone time, which could drift from what this plan's verified-facts
-   ledger describes).
+`.gitignore` covers `.pio/`, `freeink-sdk/`, `__pycache__/`, `.vscode/`,
+`compile_commands.json` and `platformio.local.ini`. Verified nothing from
+`freeink-sdk/` or `.pio/` was staged, and that no credentials are in tracked
+files (the device's Wi-Fi password lives only in NVS on the board).
+
+The `freeink-sdk` pin is now enforced by an explicit `git checkout <commit>`
+in README's setup instructions rather than an unpinned `git clone` - see that
+section, which also documents how to convert it to a real submodule if a
+README line isn't strong enough.
+
+**Remaining**: no remote is configured. Add one when there's somewhere to push.
 
 ## Non-goals (don't reintroduce scope that was deliberately cut)
 
