@@ -216,6 +216,10 @@ the device's Host field.
 | A row shows a number in parentheses | Genuine checksum failures — corrupted data on the wire. Suspect the physical link feeding your multiplexer. |
 | Values shown but marked `STALE` | That instrument stopped reporting while others kept going. |
 | Nothing on screen at all | Hold power 2 s to shut down, press again to restart. If still blank, reflash. |
+| It joined Wi-Fi at home but not elsewhere | If you use TCP, the Host address belongs to one particular network. Moving the device makes it wrong — re-enter it from the setup page. |
+| Won't join a network it should | The ESP32-C3 is **2.4 GHz only**. A 5 GHz-only network, or a router that steers devices onto 5 GHz under a shared name, cannot work. The serial log lists every network the device can actually see. |
+| Settings vanished after a firmware update | Expected. Installing always clears saved settings — the flash image covers the storage area they live in. |
+| Battery drops faster than the e-reader did | Expected. Constant Wi-Fi, a hosted access point and a 2-second screen refresh cost far more than page-turning. |
 
 For anything deeper, connect USB and watch the serial log at 115200 baud — the
 device logs its Wi-Fi scan (with every visible SSID), the connection result,
