@@ -1,0 +1,147 @@
+#include "Font5x7.h"
+
+namespace font5x7 {
+
+namespace {
+constexpr uint8_t SPACE[5] = {0x00, 0x00, 0x00, 0x00, 0x00};
+constexpr uint8_t PCT[5] = {0x23, 0x13, 0x08, 0x64, 0x62};
+constexpr uint8_t LPAREN[5] = {0x00, 0x3E, 0x41, 0x41, 0x00};
+constexpr uint8_t RPAREN[5] = {0x00, 0x41, 0x41, 0x3E, 0x00};
+constexpr uint8_t DASH[5] = {0x00, 0x08, 0x08, 0x08, 0x00};
+constexpr uint8_t DOT[5] = {0x00, 0x00, 0x40, 0x00, 0x00};
+constexpr uint8_t SLASH[5] = {0x40, 0x30, 0x08, 0x06, 0x01};
+constexpr uint8_t CH_0[5] = {0x3E, 0x41, 0x41, 0x41, 0x3E};
+constexpr uint8_t CH_1[5] = {0x00, 0x42, 0x7F, 0x40, 0x00};
+constexpr uint8_t CH_2[5] = {0x42, 0x61, 0x51, 0x49, 0x46};
+constexpr uint8_t CH_3[5] = {0x22, 0x41, 0x49, 0x49, 0x36};
+constexpr uint8_t CH_4[5] = {0x18, 0x14, 0x12, 0x7F, 0x10};
+constexpr uint8_t CH_5[5] = {0x27, 0x45, 0x45, 0x45, 0x39};
+constexpr uint8_t CH_6[5] = {0x3C, 0x4A, 0x49, 0x49, 0x30};
+constexpr uint8_t CH_7[5] = {0x01, 0x71, 0x09, 0x05, 0x03};
+constexpr uint8_t CH_8[5] = {0x36, 0x49, 0x49, 0x49, 0x36};
+constexpr uint8_t CH_9[5] = {0x06, 0x49, 0x49, 0x29, 0x1E};
+constexpr uint8_t COLON[5] = {0x00, 0x00, 0x12, 0x00, 0x00};
+constexpr uint8_t CH_A[5] = {0x7E, 0x09, 0x09, 0x09, 0x7E};
+constexpr uint8_t CH_B[5] = {0x7F, 0x49, 0x49, 0x49, 0x36};
+constexpr uint8_t CH_C[5] = {0x3E, 0x41, 0x41, 0x41, 0x22};
+constexpr uint8_t CH_D[5] = {0x7F, 0x41, 0x41, 0x41, 0x3E};
+constexpr uint8_t CH_E[5] = {0x7F, 0x49, 0x49, 0x49, 0x41};
+constexpr uint8_t CH_F[5] = {0x7F, 0x09, 0x09, 0x09, 0x01};
+constexpr uint8_t CH_G[5] = {0x3E, 0x41, 0x49, 0x49, 0x3A};
+constexpr uint8_t CH_H[5] = {0x7F, 0x08, 0x08, 0x08, 0x7F};
+constexpr uint8_t CH_I[5] = {0x00, 0x41, 0x7F, 0x41, 0x00};
+constexpr uint8_t CH_J[5] = {0x20, 0x40, 0x41, 0x3F, 0x01};
+constexpr uint8_t CH_K[5] = {0x7F, 0x08, 0x14, 0x22, 0x41};
+constexpr uint8_t CH_L[5] = {0x7F, 0x40, 0x40, 0x40, 0x40};
+constexpr uint8_t CH_M[5] = {0x7F, 0x02, 0x0C, 0x02, 0x7F};
+constexpr uint8_t CH_N[5] = {0x7F, 0x02, 0x04, 0x08, 0x7F};
+constexpr uint8_t CH_O[5] = {0x3E, 0x41, 0x41, 0x41, 0x3E};
+constexpr uint8_t CH_P[5] = {0x7F, 0x09, 0x09, 0x09, 0x06};
+constexpr uint8_t CH_Q[5] = {0x3E, 0x41, 0x51, 0x21, 0x5E};
+constexpr uint8_t CH_R[5] = {0x7F, 0x09, 0x19, 0x29, 0x46};
+constexpr uint8_t CH_S[5] = {0x46, 0x49, 0x49, 0x49, 0x31};
+constexpr uint8_t CH_T[5] = {0x01, 0x01, 0x7F, 0x01, 0x01};
+constexpr uint8_t CH_U[5] = {0x3F, 0x40, 0x40, 0x40, 0x3F};
+constexpr uint8_t CH_V[5] = {0x1F, 0x20, 0x40, 0x20, 0x1F};
+constexpr uint8_t CH_W[5] = {0x7F, 0x20, 0x18, 0x20, 0x7F};
+constexpr uint8_t CH_X[5] = {0x63, 0x14, 0x08, 0x14, 0x63};
+constexpr uint8_t CH_Y[5] = {0x03, 0x04, 0x78, 0x04, 0x03};
+constexpr uint8_t CH_Z[5] = {0x61, 0x51, 0x49, 0x45, 0x43};
+}  // namespace
+
+const uint8_t* glyphFor(char c) {
+  switch (c) {
+    case ' ':
+      return SPACE;
+    case '%':
+      return PCT;
+    case '(':
+      return LPAREN;
+    case ')':
+      return RPAREN;
+    case '-':
+      return DASH;
+    case '.':
+      return DOT;
+    case '/':
+      return SLASH;
+    case '0':
+      return CH_0;
+    case '1':
+      return CH_1;
+    case '2':
+      return CH_2;
+    case '3':
+      return CH_3;
+    case '4':
+      return CH_4;
+    case '5':
+      return CH_5;
+    case '6':
+      return CH_6;
+    case '7':
+      return CH_7;
+    case '8':
+      return CH_8;
+    case '9':
+      return CH_9;
+    case ':':
+      return COLON;
+    case 'A':
+      return CH_A;
+    case 'B':
+      return CH_B;
+    case 'C':
+      return CH_C;
+    case 'D':
+      return CH_D;
+    case 'E':
+      return CH_E;
+    case 'F':
+      return CH_F;
+    case 'G':
+      return CH_G;
+    case 'H':
+      return CH_H;
+    case 'I':
+      return CH_I;
+    case 'J':
+      return CH_J;
+    case 'K':
+      return CH_K;
+    case 'L':
+      return CH_L;
+    case 'M':
+      return CH_M;
+    case 'N':
+      return CH_N;
+    case 'O':
+      return CH_O;
+    case 'P':
+      return CH_P;
+    case 'Q':
+      return CH_Q;
+    case 'R':
+      return CH_R;
+    case 'S':
+      return CH_S;
+    case 'T':
+      return CH_T;
+    case 'U':
+      return CH_U;
+    case 'V':
+      return CH_V;
+    case 'W':
+      return CH_W;
+    case 'X':
+      return CH_X;
+    case 'Y':
+      return CH_Y;
+    case 'Z':
+      return CH_Z;
+    default:
+      return nullptr;
+  }
+}
+
+}  // namespace font5x7
