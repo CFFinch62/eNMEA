@@ -78,22 +78,16 @@ If you're unsure, look at the source: if it says "listening on port N" or
 
 ## Reading the dashboard
 
-```
- eNMEA - NMEA 0183 WI-FI VERIFIER                        TCP 192.168.1.142:10110
- SOURCE: CONNECTED                   SETUP: 192.168.1.71 OR AP      BATT 87%
- ─────────────────────────────────────────────────────────────────────────────
- SENTENCES SEEN        ┌──────────┐┌──────────┐┌──────────┐┌──────────┐
- GGA 128 1S            │ POSITION ││  SPEED   ││  COURSE  ││ HEADING  │
- RMC 128 1S            │ 47.6062  ││ 6.4 KT   ││ 118 T    ││ 47 M     │
- VTG 128 1S            │-122.3321 ││          ││          ││          │
- HDT 64 2S             └──────────┘└──────────┘└──────────┘└──────────┘
- HDG --                ┌──────────┐┌──────────┐┌──────────┐┌──────────┐
- MTW 42 3S             │ SEA TEMP ││  DEPTH   ││   WIND   ││ AIS TGTS │
- ...                   │ 16.8 C   ││ 24.3 M   ││ 12.4 KT  ││    5     │
- OTHER:                │          ││          ││ 212 T    ││          │
- GSA GLL               └──────────┘└──────────┘└──────────┘└──────────┘
- HOLD POWER 2S: SHUT DOWN   HOLD BACK 3S: ERASE SETTINGS   SETUP AP: ENMEA-SETUP
-```
+![The eNMEA dashboard on an Xteink X3. Down the left, a checklist of sentence
+types with counts and ages. Across the right, eight boxes: position, speed,
+course, heading, sea temperature, depth, wind and AIS target count. The top line
+reads SOURCE: CONNECTED alongside the device's address and battery
+charge.](docs/images/dashboard.jpg)
+
+*A live feed. Reading it: `GGA 377 (19) 0S` is 377 good GGA sentences against 19
+that failed their checksum, the last one under a second ago. `HDG --` and
+`DPT --` are types this feed never sent.*
+
 
 ### The status line
 

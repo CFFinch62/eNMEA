@@ -49,6 +49,10 @@ code {
   background:var(--accent-soft); padding:.08em .34em; border-radius:2px;
 }
 
+figure { margin:0; display:flex; flex-direction:column; gap:.55rem; }
+figure img { width:100%; height:auto; display:block; border:1px solid var(--rule-firm); border-radius:4px; }
+figcaption { font-family:"Familjen Grotesk",system-ui,sans-serif; font-size:.82rem; color:var(--ink-mute); }
+
 /* install panel */
 .install {
   background:var(--panel); border:1px solid var(--rule-firm); border-radius:4px;
@@ -94,6 +98,12 @@ footer {
     <h1>Install eNMEA on your Xteink X3</h1>
     <p class="standfirst">Plug the device into this computer with a USB cable and press Install. Your browser does the rest — nothing to download, nothing to set up.</p>
   </header>
+
+  <figure>
+    <img src="images/dashboard.jpg" width="1600" height="1083"
+         alt="An Xteink X3 held in one hand, running eNMEA. The screen lists sentence types received down the left side and shows eight boxes across the right with position, speed, course, heading, sea temperature, depth, wind and AIS target count.">
+    <figcaption>What you get: the device reading a live NMEA feed. Sentence types down the left, values across the right.</figcaption>
+  </figure>
 
   <section>
     <div class="install">
