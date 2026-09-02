@@ -180,8 +180,14 @@ def serve_tcp(args, state, t0):
                 conn.sendall("".join(sentence_batch(tick, t0, state)).encode("ascii"))
                 tick += 1
                 time.sleep(1.0)
-        except (BrokenPipeError, ConnectionResetError):
-            print("[nmea-test-server] client disconnected")
+        except OSError as exc:
+            # Any OSError, not just the clean-disconnect pair. A device that
+            # reboots mid-stream - which eNMEA does on every settings save, and
+            # on every reflash - drops off the network without closing the
+            # socket, and the send fails with EHOSTUNREACH/ETIMEDOUT instead.
+            # Catching only BrokenPipeError/ConnectionResetError took the whole
+            # server down exactly when it was most needed.
+            print(f"[nmea-test-server] client gone ({exc.__class__.__name__}: {exc}) - waiting for reconnect")
         finally:
             conn.close()
 
@@ -203,7 +209,12 @@ def serve_udp(args, state, t0):
         # and a single oversized datagram risks fragmentation on the way in.
         for line in payload.splitlines(keepends=True):
             for target in targets:
-                sock.sendto(line, (target, args.port))
+                try:
+                    sock.sendto(line, (target, args.port))
+                except OSError as exc:
+                    # Broadcasting to a subnet that briefly has no route (Wi-Fi
+                    # dropping, an interface going down) must not end the run.
+                    print(f"[nmea-test-server] send to {target} failed ({exc}) - continuing")
         if tick % 10 == 0:
             print(f"[nmea-test-server] tick {tick}: sent {len(payload)} bytes")
         tick += 1
