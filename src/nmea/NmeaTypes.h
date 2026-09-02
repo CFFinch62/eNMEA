@@ -3,8 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
-// NMEA 0183 sentences are at most 82 chars including '$'/'!' and CRLF.
-constexpr size_t NMEA_MAX_SENTENCE_LEN = 82;
+#include "NmeaLineReader.h"  // NMEA_MAX_SENTENCE_LEN
 
 // Sentence types this project understands well enough to pull dashboard
 // fields out of. Add more here (and in NmeaParser.cpp) as needed - the

@@ -10,8 +10,6 @@
 namespace {
 WebServer server(80);
 
-constexpr char AP_SSID[] = "eNMEA-Setup";
-
 // Moves the SoftAP off the ESP32 default subnet before it starts - see the
 // collision note in ProvisioningPortal.h. Must run before softAP().
 void configureApSubnet() {
@@ -64,7 +62,7 @@ void sendStatusBlock() {
                 "<b>This page is always reachable over the setup AP</b>, whatever the "
                 "Wi-Fi settings below say."
                 "</div>",
-                AP_SSID, WiFi.softAPIP().toString().c_str(), staUp ? "connected, device IP " : "not connected",
+                SETUP_AP_SSID, WiFi.softAPIP().toString().c_str(), staUp ? "connected, device IP " : "not connected",
                 staUp ? WiFi.localIP().toString().c_str() : "", staUp ? "" : " (setup mode)");
   server.sendContent(buf);
 }
@@ -218,7 +216,7 @@ void handleForget() {
   clearAppSettings();
   server.send(200, "text/html",
               "<html><body><h3>All profiles erased. Rebooting into setup mode...</h3>"
-              "<p>Rejoin <b>eNMEA-Setup</b> and browse to http://192.168.7.1/</p></body></html>");
+              "<p>Rejoin the setup network and browse to http://192.168.7.1/</p></body></html>");
   delay(200);
   ESP.restart();
 }
@@ -235,8 +233,8 @@ void ProvisioningPortal::setupRoutes() {
 void ProvisioningPortal::beginAsAccessPoint() {
   WiFi.mode(WIFI_AP);
   configureApSubnet();
-  WiFi.softAP(AP_SSID);
-  Serial.printf("[eNMEA] Setup AP '%s' up at http://%s/\n", AP_SSID, WiFi.softAPIP().toString().c_str());
+  WiFi.softAP(SETUP_AP_SSID);
+  Serial.printf("[eNMEA] Setup AP '%s' up at http://%s/\n", SETUP_AP_SSID, WiFi.softAPIP().toString().c_str());
   setupRoutes();
 }
 
@@ -247,9 +245,9 @@ void ProvisioningPortal::beginOnStation() {
   // unreachable. Switching modes here does not drop the existing association.
   WiFi.mode(WIFI_AP_STA);
   configureApSubnet();
-  WiFi.softAP(AP_SSID);
+  WiFi.softAP(SETUP_AP_SSID);
   Serial.printf("[eNMEA] Settings page: http://%s/ (LAN) and http://%s/ via AP '%s'\n",
-                WiFi.localIP().toString().c_str(), WiFi.softAPIP().toString().c_str(), AP_SSID);
+                WiFi.localIP().toString().c_str(), WiFi.softAPIP().toString().c_str(), SETUP_AP_SSID);
   setupRoutes();
 }
 

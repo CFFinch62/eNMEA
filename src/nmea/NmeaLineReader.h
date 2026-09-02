@@ -3,7 +3,10 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "NmeaTypes.h"
+// NMEA 0183 sentences are at most 82 chars including '$'/'!' and CRLF.
+// Lives here rather than with the data model: it is a property of the wire
+// format, and keeping it here lets the framing layer be used on its own.
+constexpr size_t NMEA_MAX_SENTENCE_LEN = 82;
 
 // Turns a raw byte stream (from TCP or UDP, doesn't matter which) into
 // framed NMEA sentences. Static buffer, no heap allocation, safe to feed

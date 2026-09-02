@@ -12,7 +12,14 @@
 // its own AP address: it would connect to itself and report a source failure
 // with everything apparently configured correctly. Sitting on a different
 // subnet makes eNMEA a good citizen with any gateway, not just that one.
-inline constexpr const char* SETUP_AP_SSID = "eNMEA-Setup";
+// Overridable per project: eNMEA and eAIS share this file byte-for-byte, but a
+// device flashed with eAIS must not advertise itself as eNMEA. Set
+// -DSETUP_AP_NAME='"..."' in platformio.ini rather than editing here, so the
+// two copies stay identical and check_shared.py stays quiet.
+#ifndef SETUP_AP_NAME
+#define SETUP_AP_NAME "eNMEA-Setup"
+#endif
+inline constexpr const char* SETUP_AP_SSID = SETUP_AP_NAME;
 inline constexpr const char* SETUP_AP_IP = "192.168.7.1";
 
 // A tiny HTTP form (served over WiFiServer/WebServer, both stock
@@ -25,7 +32,7 @@ inline constexpr const char* SETUP_AP_IP = "192.168.7.1";
 // saved settings (see main.cpp), not on-device editing.
 class ProvisioningPortal {
  public:
-  // Starts a SoftAP ("eNMEA-Setup", open network) and serves the form there.
+  // Starts a SoftAP (SETUP_AP_SSID, open network) and serves the form there.
   // Call when there is no saved WiFi config yet, or the saved one failed.
   void beginAsAccessPoint();
 
