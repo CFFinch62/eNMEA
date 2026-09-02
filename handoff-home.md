@@ -11,6 +11,12 @@ displays live data, shows battery charge from the fuel gauge, and can be
 switched off and re-provisioned entirely from the buttons. Nothing here is
 "compiles, should work".
 
+Beyond the firmware, the evening also produced: a git repo pushed to
+<https://github.com/CFFinch62/eNMEA>, 124 host-side parser tests (mutation-tested
+with seven injected bugs, all caught), a one-click browser installer at
+<https://cffinch62.github.io/eNMEA/> with a support FAQ, and a verified round
+trip to CrossInk and back - run twice, no errors.
+
 ---
 
 ## Where things stood at the start
@@ -30,7 +36,7 @@ the device is at the office.
 
 ---
 
-## The five real bugs
+## The five firmware bugs
 
 ### 1. No power-off path, and the power rails were never held
 
@@ -211,6 +217,49 @@ the person who needs them to be true.
 
 ---
 
+## Getting it to end users
+
+The firmware working is only half of it. A marine electronics user is not going
+to install PlatformIO, so the project now ships a browser installer:
+**<https://cffinch62.github.io/eNMEA/>** (ESP Web Tools, served by GitHub Pages
+from `docs/`). Plug in the X3, open the page in Chrome or Edge, press Install.
+
+Rebuild it after any firmware change with `scripts/build_web_installer.sh`,
+then commit `docs/`. It merges bootloader + partition table + otadata + app into
+one image flashable at offset 0, and regenerates the manifest.
+
+Things that were not obvious and are worth not rediscovering:
+
+- **The offsets are not guessable.** 0x0 for the bootloader comes from esptool's
+  own `ESP32C3ROM.BOOTLOADER_FLASH_OFFSET`; it is 0x1000 on the classic ESP32,
+  which is the usual way to get this wrong. otadata and app0 come from the
+  build's own `partitions.bin`.
+- **Installing always wipes settings.** The merged image spans the NVS
+  partition and esptool erases before writing, so every install - including an
+  update - comes up in `SETUP MODE`. Verified, not assumed.
+- **`boot_app0.bin` is not padding.** It is a real otadata record selecting
+  app0, which is what makes the device boot our app after CrossInk may have
+  been running from app1.
+- **Opening `docs/index.html` from disk cannot work.** A `file://` page has
+  origin `null`, so the manifest fetch is blocked by CORS - and ESP Web Tools
+  reports it as "Failed to download manifest", which points nowhere near the
+  cause. Chrome treats `file://` as a secure context, so its HTTPS guard does
+  not catch it first. The page now detects this and says so.
+- **ESP Web Tools never checks `response.ok`** before `.json()`, so any
+  non-JSON response surfaces under that same misleading message. The manifest
+  URL is version-stamped to keep a stale cache out of it.
+- **The dialog owns the serial port.** On success the page closes it via the
+  dialog's own `_closeDialog()` and shows plain next steps. Never detach the
+  element instead - closing is what releases the port, and a held port is the
+  "device is busy" failure the page itself documents.
+
+The page also carries a support FAQ, which exists because every problem hit
+while building this is one an end user will hit: charge-only USB cables, a port
+held by another tab, 2.4GHz-only Wi-Fi, a TCP host address that is only valid
+on one network, and settings disappearing on every install.
+
+---
+
 ## Environment notes (the things that cost time)
 
 - **PlatformIO is not installed system-wide.** Chuck's Python is externally
@@ -275,22 +324,35 @@ once during early bring-up. `default_envs = x3` now guards against it.
 
 ## What's next
 
-1. **Exercise the power-off and settings-erase gestures on battery.** The only
-   substantial code path never run on hardware.
-2. ~~Task 1, host-side parser tests.~~ **Done** — `test/run_tests.sh`, 124
-   checks, and mutation-tested with 7 injected bugs (all caught). The parser
-   layer is no longer the project's untested soft spot; `NmeaSource`'s socket
-   handling and `src/ui/` now are.
-3. **Take it back to the office** and read the Wi-Fi scan log to settle whether
-   that network is 5 GHz-only.
-4. **Repo hygiene (Task 5)** — this still isn't a git repository. It has
-   accumulated a lot of work tonight that isn't under version control.
-5. Consider making the setup AP stoppable if the retransmission rate ever
-   matters.
+1. **`NmeaSource` and `src/ui/` have no automated tests.** The parser layer is
+   covered now, so these are the soft spot. `NmeaSource` needs an interface seam
+   to be testable at all - it depends on `WiFiClient`/`WiFiUDP` directly.
+2. **Settle the office Wi-Fi question.** The device never joined there but works
+   at home; almost certainly a 5GHz-only network, since the ESP32-C3 has no
+   5GHz radio. The boot log lists every SSID it can actually see, so one trip
+   with a serial console answers it.
+3. **Consider Improv Wi-Fi over serial.** ESP Web Tools can provision Wi-Fi
+   itself immediately after flashing, if the firmware speaks the Improv serial
+   protocol. That would remove the phone-and-access-point step entirely: install
+   and configure in one browser session. It is real firmware work, but it is the
+   single biggest remaining reduction in "things a user can get wrong".
+4. **Make the setup AP stoppable** if the ~20% TCP retransmission rate ever
+   matters. The always-on SoftAP shares the radio with the station connection.
+   Harmless at NMEA data rates; measured, not theoretical.
+5. **The X4 build has never run on hardware.** It compiles. That is all that is
+   known about it.
 
 ## Documents
 
 - `README.md` — developer-facing: design decisions, bring-up checklist, build
 - `USER_GUIDE.md` — user-facing: setup, dashboard reference, troubleshooting
 - `IMPLEMENTATION_PLAN.md` — forward task list and the verified-facts ledger
-- `handoff-home.md` — this file
+- `handoff-home.md` — this file: what broke tonight and why
+- `partitions.csv` — read its header before changing anything about the layout
+- `docs/` — the browser installer (GitHub Pages source), plus the dashboard photo
+- `test/run_tests.sh` — host-side parser tests, ~1 second, no hardware
+- `scripts/` — `build_web_installer.sh`, `nmea_test_server.py` (TCP **and** UDP),
+  `gen_font.py`, `preview_font.py`
+
+Repo: <https://github.com/CFFinch62/eNMEA> (public, MIT). `git init` and the
+GitHub push both happened tonight; `default_envs` is `x3`.
