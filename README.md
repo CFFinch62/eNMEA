@@ -217,6 +217,21 @@ notes.
    everything says `--`, check UDP-vs-TCP semantics above before assuming the
    parser is broken.
 
+## Tests
+
+```sh
+test/run_tests.sh
+```
+
+Host-side tests for the framing and parsing layer - plain `g++`, no hardware,
+no PlatformIO, about a second to run. `src/nmea/*.cpp` is pure C++ apart from
+`millis()`, which `test/stubs/Arduino.h` supplies; that is what makes this
+possible, so keep Arduino types out of that layer.
+
+Run them after any change under `src/nmea/`. See `IMPLEMENTATION_PLAN.md`
+Task 1 for what they cover and for the mutation-testing results that show they
+actually catch regressions.
+
 ## Design decisions worth knowing about
 
 - **No CrossInk `GfxRenderer`/`EpdFont` reuse.** That stack is built on

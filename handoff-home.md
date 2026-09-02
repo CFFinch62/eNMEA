@@ -239,10 +239,10 @@ once during early bring-up. `default_envs = x3` now guards against it.
 
 1. **Exercise the power-off and settings-erase gestures on battery.** The only
    substantial code path never run on hardware.
-2. **Task 1 in `IMPLEMENTATION_PLAN.md`** — host-side parser unit tests. Still
-   the highest-value unverified area (checksum maths, field indices, lat/lon
-   signs). The plan's "done when" command has been corrected; it needs a stub
-   `Arduino.h` and the parser sources on the command line.
+2. ~~Task 1, host-side parser tests.~~ **Done** — `test/run_tests.sh`, 124
+   checks, and mutation-tested with 7 injected bugs (all caught). The parser
+   layer is no longer the project's untested soft spot; `NmeaSource`'s socket
+   handling and `src/ui/` now are.
 3. **Take it back to the office** and read the Wi-Fi scan log to settle whether
    that network is 5 GHz-only.
 4. **Repo hygiene (Task 5)** — this still isn't a git repository. It has

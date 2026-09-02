@@ -242,86 +242,66 @@ below, not a prerequisite for anything else - don't block other work on it.
 Ordered by suggested priority. Each has a concrete "done" bar. Do not batch
 unrelated tasks into one commit/PR - keep the diffs reviewable.
 
-### Task 1: Host-side parser unit tests (no hardware, no simulator needed)
+### Task 1: Host-side parser unit tests - DONE (2026-09-01)
 
-**Why first**: `NmeaLineReader` and `NmeaParser`
-(`src/nmea/NmeaLineReader.{h,cpp}`, `src/nmea/NmeaParser.{h,cpp}`) are pure
-C++ with no Arduino/ESP32 dependency except `millis()` (used for
-timestamping fields in `NmeaParser.cpp`). They can be compiled and tested
-with plain `g++`, entirely decoupled from hardware, the simulator, or
-PlatformIO. This is the highest-confidence, lowest-cost verification
-available for the part of the codebase most likely to have a subtle bug
-(checksum math, field-index-off-by-one, lat/lon sign handling).
-
-**What to do**:
-1. Create `test/nmea_parser/` (a plain directory, not a PlatformIO
-   `test_*` unless you also want `pio test` wired up - a standalone
-   `g++ -std=c++20` invocation is enough for v1).
-2. Stub `millis()` (a `static unsigned long fakeMillis = 0;` plus a
-   returning function is enough - `NmeaParser.cpp` only calls it to
-   timestamp fields, tests can ignore or check monotonicity loosely).
-3. Write cases covering, at minimum:
-   - Valid `$GPGGA` with a real checksum -> `data.hasPosition` true,
-     lat/lon match hand-computed values, `result.checksumValid` true.
-   - Same sentence with one bit of the checksum flipped -> `data` fields
-     **unchanged** from their pre-call state, `result.checksumValid` false,
-     `result.hasAddress` still true (so the caller can still count it as a
-     checksum failure against the right ID - see `NmeaSource::handleByte`).
-   - `$GPRMC` with status `V` (invalid fix) -> position/speed/course NOT
-     updated even though the checksum is valid (mirrors the `fields[2][0] ==
-     'A'` gate in `NmeaParser.cpp`).
-   - `$GPVTG`, `$--HDT`, `$--HDG`, `$--MTW`, `$--DBT`, `$--DPT`, `$--MWV`,
-     `$--MWD` - one valid case each, confirming the right struct field lands
-     with the right value and the right `has*`/`headingIsTrue`/
-     `windDirectionIsTrue` flags. For `MWV` also cover its 3 speed units
-     (K/M/N) converting to the same knots value, and a `status` field of `V`
-     leaving `data` untouched (mirrors the RMC status-`A` gate).
-   - `!AIVDM` - a known test sentence with a hand-verified expected MMSI
-     (e.g. `!AIVDM,1,1,,B,15M67FC000G?ufbE\`FepT@3n00Sa,0*5C` decodes to MMSI
-     366053209 - a value independently verifiable against any AIS decoder,
-     not just this parser) confirms `AisTargetTable` gets exactly one entry
-     with that MMSI. Also cover: re-feeding the same sentence doesn't grow
-     the target count (dedup by MMSI), and a fragment-2 sentence
-     (`fields[2] != "1"`) is ignored rather than decoding garbage from a
-     mid-message payload slice. `!AIVDO` should update the sentence
-     checklist but must NOT add an AIS target - it's this vessel's own
-     transponder output.
-   - A sentence type outside the known set (e.g. `$GPGSA...*checksum`) -
-     `result.hasAddress` true, `result.sentenceId` == `"GSA"`,
-     `data` untouched (proves "seen but not decoded" sentences still get
-     checksum-tracked, matching the `SentenceTable`/"OTHER:" line design in
-     `Dashboard.cpp`).
-   - Feed `NmeaLineReader` a stream with **two sentences run together with
-     no CR/LF between them** (some multiplexers do this) and confirm it
-     resyncs cleanly on the second sentence's `$`.
-   - Feed it >82 bytes without a terminator - confirm it drops and resyncs
-     without corrupting the next real sentence.
-4. Compute at least 2-3 of the expected checksums by hand (XOR of the ASCII
-   bytes between `$` and `*`) rather than trusting a copy-pasted example
-   sentence's checksum blindly - the point of these tests is independent
-   verification, not circular trust in whatever sample sentences you find
-   online.
-
-**Done when**: this exits 0 -
+Run them with `test/run_tests.sh`, or directly:
 
 ```sh
-g++ -std=c++20 -Isrc -Itest/stubs test/nmea_parser/*.cpp src/nmea/*.cpp \
-    -o /tmp/nmea_parser_test && /tmp/nmea_parser_test
+g++ -std=c++20 -Wall -Wextra -Isrc -Itest/stubs \
+    test/nmea_parser/*.cpp src/nmea/*.cpp -o /tmp/nmea_parser_test
+/tmp/nmea_parser_test
 ```
 
-- and a deliberately introduced bug (e.g. flip a `>=` to `>` in a field-count
-guard in `NmeaParser.cpp`) makes at least one test fail - i.e. confirm the
-tests actually exercise the logic, not just that they compile.
+**124 checks, 0 failures**, compiling clean under `-Wall -Wextra`. No hardware,
+no simulator, no PlatformIO - about a second end to end.
 
-Note the two things an earlier draft of this bar got wrong: the parser sources
-have to be *on the command line* (they aren't header-only), and
-`NmeaParser.cpp` includes `<Arduino.h>`, which does not exist on the host - so
-`test/stubs/Arduino.h` supplying `millis()` is a prerequisite, not an
-afterthought.
+Layout:
+- `test/stubs/Arduino.h` - declares `millis()`, the only thing `src/nmea/*.cpp`
+  needs from the Arduino core. **This is load-bearing**: if a future change
+  pulls `String`, `Serial` or anything else Arduino-shaped into
+  `NmeaParser.cpp` or `NmeaLineReader.cpp`, the stub stops being enough and the
+  cheapest tests in the project stop working. Keep that layer pure.
+- `test/nmea_parser/test_support.{h,cpp}` - a ~40-line check harness (no
+  framework dependency), plus `parseSentence()`, which copies into a mutable
+  buffer because `parseLine()` splits fields in place.
+- `test_line_reader.cpp`, `test_parser.cpp`, `test_ais.cpp` - the cases.
 
-The AIS vector in step 3 has since been independently confirmed: for
-`!AIVDM,1,1,,B,15M67FC000G?ufbE\`FepT@3n00Sa,0*5C` the checksum really is `5C`,
-the message type is 1, and the MMSI is 366053209.
+Coverage: GGA (incl. S/W negation and fix-quality-0 rejection), the
+checksum-failure and no-checksum paths, RMC's status gate, VTG's knots-vs-km/h
+field, HDT/HDG true-vs-magnetic, MTW, DBT's metres-not-feet field, DPT's
+ignored offset, MWV across all three speed units plus its reference and status
+fields, MWD, unrecognized sentences still being identified for the `OTHER:`
+line, field timestamping, AIS MMSI decode / dedup / fragment-2 rejection /
+VDO-is-not-a-target / `liveCount()` window boundaries / table overflow, and
+NmeaLineReader's framing, resync and oversize handling.
+
+Every checksum was computed independently (XOR between the start char and
+`*`), and the coordinates were worked out by hand from ddmm.mmmm rather than
+read back from this parser - the plan's original point about not trusting
+copy-pasted sample sentences. That caught one bad expectation while writing
+these: a too-short-AIS-payload case used a wrong checksum, so it would have
+passed for the wrong reason (rejected as corrupt rather than as too short).
+
+**The suite was mutation-tested**, which is the half of "done" that matters -
+passing tests prove nothing by themselves. Seven deliberate bugs were injected
+one at a time and all seven were caught:
+
+| Injected bug | Checks failed |
+| --- | --- |
+| DBT reads feet instead of metres | 1 |
+| RMC ignores its status field | 3 |
+| MWV field-count guard `>=` -> `>` | 8 |
+| Southern latitude not negated | 1 |
+| km/h to knots multiplies instead of divides | 1 |
+| AIS MMSI read from the wrong bit offset | 1 |
+| Line reader does not resync on a mid-sentence `$` | 2 |
+
+Worth repeating that exercise after adding cases - it is the only way to tell
+a test that checks behaviour from one that merely runs it.
+
+**Not covered** (would need refactoring or hardware): `NmeaSource`'s socket
+handling and state machine, since it depends on `WiFiClient`/`WiFiUDP`; and
+everything under `src/ui/`.
 
 ### Task 2: On-device button input - DONE (2026-09-01)
 
