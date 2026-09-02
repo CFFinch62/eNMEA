@@ -25,23 +25,29 @@ design decisions already made (why no on-device keyboard, why no
 
 ## Where things live
 
+Only the first of these is a dependency. The other two are read-only reference
+material that this project is deliberately *not* coupled to - clone them
+wherever you like, or not at all. Paths below are relative to wherever you keep
+your checkouts; this document deliberately doesn't hardcode one developer's
+home directory.
+
 - **This project**: wherever this file is (`platformio.ini` is a sibling).
-- **`freeink-sdk`**: not vendored here - clone
-  `https://github.com/Free-Ink/freeink-sdk.git` into `./freeink-sdk/` next
-  to `platformio.ini` before building (see `README.md`). A reference clone
-  also exists at `/home/chuck/CrossInk/freeink-sdk/` (populated as a git
-  submodule of `/home/chuck/CrossInk/` - run `git submodule update --init
-  freeink-sdk` there if it's ever empty again). Treat `/home/chuck/CrossInk`
-  as read-only reference material, not a dependency of this project.
+- **`freeink-sdk`** (the one real dependency): not vendored - clone
+  `https://github.com/Free-Ink/freeink-sdk.git` into `./freeink-sdk/` next to
+  `platformio.ini` and check out the pinned commit before building. See
+  README's "Getting freeink-sdk", which explains why the pin matters.
 - **CrossInk firmware** (reference only, do not depend on it):
-  `/home/chuck/CrossInk/`. Useful for cross-checking how a verified-working
-  firmware calls the same SDK (e.g. `lib/hal/HalDisplay.cpp`,
-  `lib/hal/HalGPIO.h`, `src/activities/network/WifiSelectionActivity.cpp`).
-- **crossink-simulator** (reference only, integration not yet decided):
-  `/home/chuck/crossink-simulator/`. **Not present on this machine as of
-  2026-09-01** - the ledger notes below were written against a clone that is
-  no longer there, so re-verify them against a fresh clone before acting on
-  Task 3. `/home/chuck/CrossInk/` itself *is* present.
+  `https://github.com/daveallie/CrossInk`. Useful for cross-checking how a
+  verified-working firmware drives the same SDK on the same board - it also
+  carries `freeink-sdk` as a submodule. The files worth reading are
+  `lib/hal/HalDisplay.cpp`, `lib/hal/HalGPIO.h`,
+  `lib/hal/HalPowerManager.cpp` (the deep-sleep ordering this project copies)
+  and `src/activities/network/WifiSelectionActivity.cpp` (the defensive Wi-Fi
+  connect sequence). MIT licensed, as is freeink-sdk.
+- **crossink-simulator** (reference only, integration not yet decided): the
+  ledger notes below about it were written against a clone that was later not
+  present, so **re-verify them against a fresh clone before acting on Task
+  3.**
 
 ## Verified-facts ledger
 

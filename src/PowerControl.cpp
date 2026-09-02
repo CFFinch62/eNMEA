@@ -28,7 +28,7 @@
   // The panel controller gets its own deep-sleep command while its rail is
   // still up - powerDownRailsForSleep() below may cut that rail, and a
   // controller that never heard DSLP can keep its analog booster running.
-  // Same ordering as CrossInk's enterDeepSleep() (/home/chuck/CrossInk/src/main.cpp).
+  // Same ordering as CrossInk's enterDeepSleep() (its src/main.cpp).
   canvas.sleepPanel();
 
   // Release the battery latch. On the X4 BoardConfig maps power.latch0 to

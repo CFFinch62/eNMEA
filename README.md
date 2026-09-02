@@ -167,8 +167,8 @@ tells the two failure shapes apart:
 ## Bring-up checklist (run through this before trusting anything on screen)
 
 Everything below except font glyphs has now been checked against the real
-`freeink-sdk` source (cloned to `/home/chuck/CrossInk/freeink-sdk` while
-scaffolding this - see `IMPLEMENTATION_PLAN.md` for the verification notes).
+`freeink-sdk` source - see `IMPLEMENTATION_PLAN.md` for the verification
+notes.
 
 1. **Framebuffer polarity - confirmed correct.** `EinkCanvas` assumes the
    panel's 1bpp buffer is MSB-first with `1=white, 0=black`. Confirmed
@@ -286,6 +286,12 @@ scaffolding this - see `IMPLEMENTATION_PLAN.md` for the verification notes).
   labeled `T` or `R` (true vs. relative-to-bow, per its own reference
   field); MWD's is always `T`. MWV speed is normalized to knots from
   whatever unit field it carries (K=km/h, M=m/s, N=knots already).
+
+## License
+
+MIT - see `LICENSE`. The two projects this one builds on or references are MIT
+too: `freeink-sdk` (the hardware libraries this links against) and CrossInk
+(reference material only; nothing here depends on it).
 
 ## What's still rough (known gaps, not hidden)
 

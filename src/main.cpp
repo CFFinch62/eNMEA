@@ -163,7 +163,7 @@ bool connectToWifi() {
 
   // This board previously ran CrossInk as an e-reader, which explicitly
   // calls WiFi.persistent(false) to "suppress SDK NVS auto-connect" (see
-  // /home/chuck/CrossInk/src/activities/network/WifiSelectionActivity.cpp) -
+  // CrossInk's src/activities/network/WifiSelectionActivity.cpp) -
   // it manages its own credential store rather than trusting the ESP-IDF
   // WiFi driver's own internal NVS blob (a separate partition from this
   // project's own AppSettings/Preferences storage). A prior boot's Wi-Fi
