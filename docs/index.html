@@ -53,6 +53,14 @@ figure { margin:0; display:flex; flex-direction:column; gap:.55rem; }
 figure img { width:100%; height:auto; display:block; border:1px solid var(--rule-firm); border-radius:4px; }
 figcaption { font-family:"Familjen Grotesk",system-ui,sans-serif; font-size:.82rem; color:var(--ink-mute); }
 
+.done {
+  background:var(--ok-bg); border:1px solid var(--ok); border-radius:4px;
+  padding:1.4rem 1.6rem; display:flex; flex-direction:column; gap:.7rem;
+}
+.done h2 { border:0; padding:0; margin:0; color:var(--ok); font-size:1.3rem; }
+.done ol { margin:0; padding-left:1.2rem; display:flex; flex-direction:column; gap:.45rem; }
+.done p { color:var(--ink-mid); font-size:.95rem; }
+
 /* install panel */
 .install {
   background:var(--panel); border:1px solid var(--rule-firm); border-radius:4px;
@@ -124,6 +132,15 @@ footer {
           <b>This page needs to be served over HTTPS</b> to talk to a USB device.
         </div>
       </esp-web-install-button>
+      <div id="done" class="done" hidden>
+        <h2>Installed</h2>
+        <ol>
+          <li>The device's screen now reads <code>SETUP MODE</code>.</li>
+          <li>On your phone, join the Wi-Fi network <b>eNMEA-Setup</b>.</li>
+          <li>Open <b>http://192.168.4.1/</b> and fill in your Wi-Fi details and where your NMEA data comes from.</li>
+        </ol>
+        <p>You can unplug the USB cable now. The <a href="https://github.com/CFFinch62/eNMEA/blob/main/USER_GUIDE.md">user guide</a> explains the dashboard.</p>
+      </div>
       <div class="meta">
         <span>version <span id="version">92448e4</span></span>
         <span>built <span id="built">2026-09-01</span></span>
@@ -265,6 +282,58 @@ footer {
     document.getElementById("file-warning").hidden = false;
     document.querySelector("esp-web-install-button").hidden = true;
   }
+</script>
+<script>
+  // After a successful write, ESP Web Tools returns to its own device menu -
+  // "Install" and "Logs & Console" - which reads as "did that not work?" rather
+  // than "finished". Dismiss it and show plain next steps instead.
+  //
+  // It publishes no event for install completion, so this polls the dialog's
+  // own state. `_installState` and `_closeDialog()` are internals of
+  // esp-web-tools 10.4.0, which is why the CDN version above is pinned rather
+  // than floating. Every access is guarded: if a later version renames them,
+  // this quietly does nothing and the dialog behaves exactly as it does today.
+  //
+  // Close via _closeDialog(), never by removing the element. Closing is what
+  // releases the serial port; yanking it out of the DOM would leave the device
+  // held open - the "another program is already using the device" failure
+  // described further down this page.
+  (function () {
+    var button = document.querySelector("esp-web-install-button");
+    var done = document.getElementById("done");
+    if (!button || !done) return;
+
+    var timer = null, sawDialog = false, startedAt = 0;
+    function stop() { clearInterval(timer); timer = null; }
+
+    button.addEventListener("click", function () {
+      if (timer) return;
+      sawDialog = false;
+      startedAt = Date.now();
+      timer = setInterval(function () {
+        var dialog = document.querySelector("ewt-install-dialog");
+        if (!dialog) {
+          // Gone before we ever saw it finish: the user cancelled, or picked
+          // no port. Give up rather than polling forever.
+          if (sawDialog || Date.now() - startedAt > 900000) stop();
+          return;
+        }
+        sawDialog = true;
+        var state = dialog._installState && dialog._installState.state;
+        if (state === "finished") {
+          stop();
+          done.hidden = false;
+          done.scrollIntoView({ behavior: "smooth", block: "center" });
+          // Brief pause so the completion message is seen before it vanishes.
+          setTimeout(function () {
+            if (typeof dialog._closeDialog === "function") dialog._closeDialog();
+          }, 1000);
+        } else if (state === "error") {
+          stop();  // leave it open - the user needs the error and the logs
+        }
+      }, 400);
+    });
+  })();
 </script>
 <script type="module" src="https://cdn.jsdelivr.net/npm/esp-web-tools@10.4.0/dist/web/install-button.js"></script>
 </body>
