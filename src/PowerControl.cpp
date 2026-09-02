@@ -7,10 +7,11 @@
 #include <driver/gpio.h>
 #include <esp_sleep.h>
 
+#include "Product.h"
 #include "ui/EinkCanvas.h"
 
 [[noreturn]] void powerOff(EinkCanvas& canvas) {
-  Serial.println("[eNMEA] Power button held - shutting down");
+  Serial.println(LOG_TAG "Power button held - shutting down");
   Serial.flush();
 
   // E-ink keeps its last image with the rails down, so this is literally what
