@@ -56,8 +56,6 @@ cat > docs/manifest.json <<JSON
 {
   "name": "eNMEA (Xteink X3)",
   "version": "${VERSION}",
-  "home_assistant_domain": null,
-  "funding_url": null,
   "new_install_prompt_erase": true,
   "builds": [
     {
@@ -73,6 +71,10 @@ JSON
 # Keep the page's displayed version honest without hand-editing HTML.
 if [ -f docs/index.html ]; then
   sed -i "s|<span id=\"version\">[^<]*</span>|<span id=\"version\">${VERSION}</span>|" docs/index.html
+  # Cache-bust the manifest URL. ESP Web Tools fetches it without checking
+  # response.ok, so a stale cached copy - or a 404 cached from before the file
+  # existed - surfaces as the misleading "Failed to download manifest".
+  sed -i "s|manifest=\"manifest.json?v=[^\"]*\"|manifest=\"manifest.json?v=${VERSION}\"|" docs/index.html
   sed -i "s|<span id=\"built\">[^<]*</span>|<span id=\"built\">${DATE}</span>|" docs/index.html
 fi
 
