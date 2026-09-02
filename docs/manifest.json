@@ -1,0 +1,15 @@
+{
+  "name": "eNMEA (Xteink X3)",
+  "version": "95014a7",
+  "home_assistant_domain": null,
+  "funding_url": null,
+  "new_install_prompt_erase": true,
+  "builds": [
+    {
+      "chipFamily": "ESP32-C3",
+      "parts": [
+        { "path": "firmware/eNMEA-x3-95014a7.bin", "offset": 0 }
+      ]
+    }
+  ]
+}

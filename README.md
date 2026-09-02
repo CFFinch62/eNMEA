@@ -79,6 +79,31 @@ which is the trade.
 CrossInk itself is only a reference for engineering decisions (see "Design
 decisions" below) - nothing here depends on it being present.
 
+## Installing without a toolchain (for end users)
+
+`docs/` is a browser-based installer built on
+[ESP Web Tools](https://esphome.github.io/esp-web-tools/): plug the X3 into a
+computer, open the page in Chrome or Edge, press Install. No Python, no
+PlatformIO, no drivers, no command line. GitHub Pages serves it over HTTPS,
+which Web Serial requires.
+
+Rebuild it after a firmware change:
+
+```sh
+scripts/build_web_installer.sh   # builds env:x3, merges, regenerates the manifest
+git add docs && git commit && git push
+```
+
+That produces a single `docs/firmware/eNMEA-x3-<version>.bin` holding
+bootloader + partition table + otadata + application, flashable at offset 0 -
+so it also works with plain `esptool --chip esp32c3 write-flash 0x0 <file>` for
+anyone who prefers a terminal.
+
+**Limits worth knowing before pointing someone at it**: Web Serial is
+Chrome/Edge on desktop only - not Safari, not Firefox, not any phone browser.
+On Linux the user still needs serial-port permission (`dialout` group or the
+PlatformIO udev rules), the same hurdle as flashing locally. The page says both.
+
 ## Build & flash
 
 ```sh

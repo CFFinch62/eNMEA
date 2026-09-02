@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Install eNMEA</title>
+<meta name="description" content="Flash the eNMEA NMEA 0183 verifier onto an Xteink X3 straight from your browser.">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --paper:#FAF7F0; --panel:#FFFFFF; --ink:#171A1D; --ink-mid:#454B52; --ink-mute:#6B7178;
+  --rule:#E4DED1; --rule-firm:#CFC7B6; --accent:#A81E68; --accent-soft:#F4E2EC;
+  --ok:#1F6B3C; --ok-bg:#E6F0E8; --warn:#8A5A00; --warn-bg:#F6EEDC;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:#12151A; --panel:#191D23; --ink:#E9E6E0; --ink-mid:#B9BEC5; --ink-mute:#8C939B;
+    --rule:#2A2F36; --rule-firm:#3C434B; --accent:#F07AB0; --accent-soft:#331A28;
+    --ok:#7BC48E; --ok-bg:#16251B; --warn:#E0B562; --warn-bg:#2A2113;
+  }
+}
+*,*::before,*::after { box-sizing:border-box; }
+body {
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Source Serif 4",Georgia,serif; font-size:17px; line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap { max-width:40rem; margin:0 auto; padding:3rem 1.5rem 5rem; display:flex; flex-direction:column; gap:2.75rem; }
+.eyebrow {
+  font-family:"Familjen Grotesk",system-ui,sans-serif; font-size:.72rem; font-weight:600;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--accent);
+}
+h1 {
+  font-family:"Familjen Grotesk",system-ui,sans-serif; font-size:clamp(2.2rem,7vw,3rem);
+  font-weight:700; line-height:1.03; letter-spacing:-.02em; margin:.35rem 0 0; text-wrap:balance;
+}
+.standfirst { font-size:1.14rem; color:var(--ink-mid); margin:.8rem 0 0; }
+h2 {
+  font-family:"Familjen Grotesk",system-ui,sans-serif; font-size:1.4rem; font-weight:700;
+  margin:0 0 .2rem; padding-bottom:.45rem; border-bottom:1px solid var(--rule-firm); letter-spacing:-.01em;
+}
+section { display:flex; flex-direction:column; gap:.9rem; }
+p { margin:0; }
+a { color:var(--accent); text-underline-offset:2px; }
+a:focus-visible, button:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+code {
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.86em;
+  background:var(--accent-soft); padding:.08em .34em; border-radius:2px;
+}
+
+/* install panel */
+.install {
+  background:var(--panel); border:1px solid var(--rule-firm); border-radius:4px;
+  padding:1.6rem; display:flex; flex-direction:column; gap:1rem; align-items:flex-start;
+}
+esp-web-install-button { --esp-tools-button-color:var(--accent); }
+.meta {
+  font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.76rem; color:var(--ink-mute);
+  display:flex; flex-wrap:wrap; gap:.3rem 1.2rem;
+}
+.unsupported {
+  background:var(--warn-bg); color:var(--warn); border-radius:3px; padding:.9rem 1rem;
+  font-family:"Familjen Grotesk",system-ui,sans-serif; font-size:.92rem;
+}
+.unsupported b { color:var(--ink); }
+
+/* steps */
+ol.steps { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1rem; counter-reset:s; }
+ol.steps > li { counter-increment:s; display:grid; grid-template-columns:1.9rem 1fr; gap:.85rem; align-items:baseline; }
+ol.steps > li::before {
+  content:counter(s,decimal-leading-zero); font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:.78rem; font-weight:500; color:var(--accent); padding-top:.2em;
+}
+strong { font-weight:600; }
+
+table { border-collapse:collapse; width:100%; font-family:"Familjen Grotesk",system-ui,sans-serif; font-size:.9rem; }
+td { padding:.55rem .8rem .55rem 0; border-bottom:1px solid var(--rule); vertical-align:top; color:var(--ink-mid); }
+td:first-child { color:var(--ink); font-weight:500; }
+.scroll { overflow-x:auto; }
+
+footer {
+  border-top:2px solid var(--ink); padding-top:1rem; font-family:"Familjen Grotesk",system-ui,sans-serif;
+  font-size:.8rem; color:var(--ink-mute); display:flex; flex-wrap:wrap; gap:.3rem 1.2rem;
+}
+@media (prefers-reduced-motion:reduce) { * { animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Firmware Installer</div>
+    <h1>Install eNMEA on your Xteink X3</h1>
+    <p class="standfirst">Plug the device into this computer with a USB cable and press Install. Your browser does the rest — nothing to download, nothing to set up.</p>
+  </header>
+
+  <section>
+    <div class="install">
+      <esp-web-install-button manifest="manifest.json">
+        <button slot="activate" style="font:600 1rem/1 'Familjen Grotesk',system-ui,sans-serif;background:var(--accent);color:#fff;border:0;border-radius:4px;padding:.85rem 1.6rem;cursor:pointer">Install eNMEA</button>
+        <div slot="unsupported" class="unsupported">
+          <b>This browser can't flash devices.</b> Use <b>Chrome</b> or <b>Edge</b> on a desktop or laptop — they support Web Serial, which is how the page talks to the device. Safari, Firefox, and phone browsers can't.
+        </div>
+        <div slot="not-allowed" class="unsupported">
+          <b>This page needs to be served over HTTPS</b> to talk to a USB device.
+        </div>
+      </esp-web-install-button>
+      <div class="meta">
+        <span>version <span id="version">95014a7</span></span>
+        <span>built <span id="built">2026-09-01</span></span>
+        <span>Xteink X3 · ESP32-C3</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What happens</h2>
+    <ol class="steps">
+      <li><span><strong>Connect the X3</strong> to this computer with a USB-C data cable. Some cables are charge-only and won't work — if the device never appears, that's the first thing to swap.</span></li>
+      <li><span><strong>Press Install</strong>, then pick the device from the list your browser shows. It will be named something like <code>USB JTAG/serial debug unit</code>.</span></li>
+      <li><span><strong>Wait about a minute.</strong> The page erases the old firmware and writes the new one. Don't unplug during this.</span></li>
+      <li><span><strong>The screen shows SETUP MODE</strong> when it's done, and the device starts its own Wi-Fi network called <code>eNMEA-Setup</code>.</span></li>
+      <li><span><strong>Join that network from your phone</strong> and open <code>http://192.168.4.1/</code> to enter your Wi-Fi details and where your NMEA data comes from. The <a href="https://github.com/CFFinch62/eNMEA/blob/main/USER_GUIDE.md">user guide</a> walks through it.</span></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>If something goes wrong</h2>
+    <div class="scroll">
+      <table>
+        <tbody>
+          <tr><td>No device in the list</td><td>Try a different USB-C cable — charge-only cables carry no data. Then try another port.</td></tr>
+          <tr><td>Still nothing, on Linux</td><td>Your user needs permission to use serial ports. In a terminal: <code>sudo usermod -aG dialout $USER</code>, then log out and back in.</td></tr>
+          <tr><td>Install fails partway</td><td>Unplug, plug back in, and press Install again. A half-written flash is recoverable — the installer rewrites everything from scratch.</td></tr>
+          <tr><td>Screen stays blank</td><td>Hold the power button for 2 seconds to shut down, then press it once to start up again.</td></tr>
+          <tr><td>Screen shows diagonal black smears</td><td>Wrong firmware for this panel. This installer only builds for the X3 — reinstall from this page.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Prefer the command line?</h2>
+    <p>The same image flashes with esptool, no browser involved:</p>
+    <p><code>esptool --chip esp32c3 write-flash 0x0 eNMEA-x3-&lt;version&gt;.bin</code></p>
+    <p>Grab the <code>.bin</code> from the <a href="firmware/">firmware folder</a>. Building from source is in the <a href="https://github.com/CFFinch62/eNMEA">repository README</a>.</p>
+  </section>
+
+  <footer>
+    <span><a href="https://github.com/CFFinch62/eNMEA">github.com/CFFinch62/eNMEA</a></span>
+    <span>MIT licensed</span>
+  </footer>
+
+</div>
+
+<!-- ESP Web Tools: flashes ESP32 devices over Web Serial. Pinned rather than
+     floating on @latest, so a breaking upstream release cannot silently take
+     the installer down for end users. -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/esp-web-tools@10.1.0/dist/web/install-button.js"></script>
+</body>
+</html>
